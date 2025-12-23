@@ -53,7 +53,7 @@ def navigate_to(page):
 # --- VIEWS ---
 
 def landing_page():
-    st.title("💧 Calidad ambiental")
+    st.title("🌍 Calidad ambiental")
     st.markdown("### Seleccione el módulo que desea consultar:")
     
     col1, col2 = st.columns(2)
@@ -250,5 +250,6 @@ elif st.session_state['page'] == 'surface':
     water_quality_module(module_type="surface")
 elif st.session_state['page'] == 'effluents':
     water_quality_module(module_type="effluents")
+
 
 

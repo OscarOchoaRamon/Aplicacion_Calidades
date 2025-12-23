@@ -1,5 +1,3 @@
 chromium
 chromium-driver
-fonts-urw-base35
-fonts-freefont-ttf
-fonts-texgyre
+chromium-driver

@@ -270,7 +270,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
     
     # Legend Position Logic
     legend_layout = dict(
-        font=dict(family="Bookman Old Style, TeX Gyre Bonum, URW Bookman L, serif", size=8, color="black"),
+        font=dict(family="Bookman Old Style, serif", size=8, color="black"),
         title=dict(text="")
     )
     
@@ -304,13 +304,13 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
         xaxis_title=None,
         
         # Y-axis now uses the parameter name plus unit for clarity
-        yaxis_title=dict(text=f"{parameter} ({unit})", font=dict(family="Bookman Old Style, TeX Gyre Bonum, URW Bookman L, serif", weight="bold", size=9, color="black")),
+        yaxis_title=dict(text=f"{parameter} ({unit})", font=dict(family="Bookman Old Style, serif", weight="bold", size=9, color="black")),
         
         # Legend logic
         legend=legend_layout,
         
         # Colors & Fonts
-        font=dict(family="Bookman Old Style, TeX Gyre Bonum, URW Bookman L, serif", color="black", size=9),
+        font=dict(family="Bookman Old Style, serif", color="black", size=9),
         paper_bgcolor="white",
         plot_bgcolor="white",
         
@@ -366,20 +366,20 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
             tickmode='array', # CRITICAL: Forces Plotly to use our custom vals/text/
             tickvals=tick_vals,
             ticktext=tick_text,
-            tickfont=dict(family="Bookman Old Style, TeX Gyre Bonum, URW Bookman L, serif", size=9, color="black"),
+            tickfont=dict(family="Bookman Old Style, serif", size=9, color="black"),
             tickangle=date_angle, # Configurable angle
             showline=True, linewidth=1, linecolor='black', mirror=True
         )
     else:
         # Fallback if no dates
-         fig.update_xaxes(tickfont=dict(family="Bookman Old Style, TeX Gyre Bonum, URW Bookman L, serif", size=9, color="black"))
+         fig.update_xaxes(tickfont=dict(family="Bookman Old Style, serif", size=9, color="black"))
 
     fig.update_yaxes(
-        tickfont=dict(family="Bookman Old Style, TeX Gyre Bonum, URW Bookman L, serif", size=9, color="black"),
+        tickfont=dict(family="Bookman Old Style, serif", size=9, color="black"),
         showline=True, linewidth=1, linecolor='black', mirror=True
     )
     
     # Update global layout font too
-    fig.update_layout(font=dict(family="Bookman Old Style, TeX Gyre Bonum, URW Bookman L, serif", size=9, color="black"))
+    fig.update_layout(font=dict(family="Bookman Old Style, serif", size=9, color="black"))
     
     return fig

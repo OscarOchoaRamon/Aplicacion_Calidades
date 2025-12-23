@@ -38,8 +38,8 @@ if font_registered:
 
 # Page Configuration
 st.set_page_config(
-    page_title="Monitor de Calidad de Agua",
-    page_icon="💧",
+    page_title="Calidad ambiental",
+    page_icon="🌍",
     layout="wide"
 )
 
@@ -250,3 +250,4 @@ elif st.session_state['page'] == 'surface':
     water_quality_module(module_type="surface")
 elif st.session_state['page'] == 'effluents':
     water_quality_module(module_type="effluents")
+

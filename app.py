@@ -3,6 +3,24 @@ import streamlit as st
 from processing import load_data, clean_data, merge_data, get_regulation_groups
 from plotting import create_chart
 import os
+import shutil
+
+# --- CUSTOM FONT REGISTRATION ---
+# Attempt to register Bookman Old Style if the file exists
+font_filename = "BookmanOldStyle.ttf"
+if os.path.exists(font_filename):
+    # Linux font directory
+    font_dir = os.path.expanduser("~/.fonts")
+    if not os.path.exists(font_dir):
+        os.makedirs(font_dir)
+    
+    target_path = os.path.join(font_dir, font_filename)
+    
+    # Copy only if it doesn't exist to save time
+    if not os.path.exists(target_path):
+        shutil.copy(font_filename, target_path)
+        # Refresh font cache
+        os.system("fc-cache -f -v")
 
 # Page Configuration
 st.set_page_config(

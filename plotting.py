@@ -253,14 +253,27 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
                     color = 'rgba(255, 0, 0, 0.5)'
 
             # Add Line Trace
-            fig.add_trace(go.Scatter(
-                x=[subset['fecha'].min(), subset['fecha'].max()],
-                y=[val, val],
-                mode='lines',
-                name=label,
-                line=dict(color=color, dash=dash, width=width),
-                hoverinfo='name+y'
-            ))
+            fig.add_hline(
+                            y=val,
+                            line_width=width,
+                            line_dash=dash,
+                            line_color=color,
+                            # Opcional: Poner el texto directamente sobre la línea
+                            # annotation_text=label, 
+                            # annotation_position="top right"
+                        )
+            
+                        # 2. Truco para mantener la leyenda (Opcional)
+                        # Como add_hline no crea leyenda, agregamos un trazo "fantasma" vacío
+                        # para que aparezca el nombre en la lista de la derecha.
+                        fig.add_trace(go.Scatter(
+                            x=[None], 
+                            y=[None],
+                            mode='lines',
+                            name=label,
+                            line=dict(color=color, dash=dash, width=width),
+                            showlegend=True
+                        ))
             
     # Layout updates with custom styling
     # Conversion: 1 cm is approximately 37.8 pixels
@@ -383,3 +396,4 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
     fig.update_layout(font=dict(family="Bookman Old Style, serif", size=9, color="black"))
     
     return fig
+

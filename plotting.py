@@ -273,7 +273,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
         font=dict(family="Bookman Old Style, serif", size=7, color="black"),
         title=dict(text=""),
         tracegroupgap=0,
-        itemwidth=30
+        itemwidth=5
     )
     
     # Margin adjustments based on legend
@@ -385,6 +385,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
     fig.update_layout(font=dict(family="Bookman Old Style, serif", size=9, color="black"))
     
     return fig
+
 
 
 

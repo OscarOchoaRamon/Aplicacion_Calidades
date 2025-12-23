@@ -152,7 +152,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
             reg_body = parts[0].upper()
             category = " ".join(parts[1:]).upper()
             
-        return f"{prefix} {reg_body}<br>{category}" # Plotly uses <br> for newline
+        return f"{prefix} {reg_body} {category}" # Plotly uses <br> for newline
 
     for col in limit_cols:
         # Get the single value for this parameter
@@ -386,6 +386,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
     fig.update_layout(font=dict(family="Bookman Old Style, serif", size=9, color="black"))
     
     return fig
+
 
 
 

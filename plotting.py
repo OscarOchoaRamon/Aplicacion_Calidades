@@ -272,7 +272,13 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
     legend_layout = dict(
         font=dict(family="Bookman Old Style, serif", size=7, color="black"),
         title=dict(text=""),
-        tracegroupgap=15
+        itemgap=1,  # Reducir espacio vertical entre items
+        tracegroupgap=1,
+        itemwidth=25,
+        itemsizing='constant',
+        borderwidth=0,
+        # Controla la altura de cada item (útil para leyendas multi-línea)
+        itemheight=20
     )
     
     # Margin adjustments based on legend
@@ -384,6 +390,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
     fig.update_layout(font=dict(family="Bookman Old Style, serif", size=9, color="black"))
     
     return fig
+
 
 
 

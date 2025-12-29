@@ -56,7 +56,7 @@ def landing_page():
     st.title("🌍 Calidad ambiental")
     st.markdown("### Seleccione el módulo que desea consultar:")
     
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         if st.button("🌊 Agua Superficial", use_container_width=True):
@@ -66,6 +66,11 @@ def landing_page():
     with col2:
         if st.button("🏭 Efluentes", use_container_width=True):
             navigate_to('effluents')
+            st.rerun()
+
+    with col3:
+        if st.button("⛰️ Sedimentos", use_container_width=True):
+            navigate_to('sediments')
             st.rerun()
 
 
@@ -82,11 +87,21 @@ def water_quality_module(module_type="surface"):
         default_file = "bbdd_molde.xlsx"
         reg_defaults_filter = ["ECA 2017 3D1", "ECA 2017 3D2"]
         success_msg_prefix = "Agua Superficial"
-    else:
+    elif module_type == "effluents":
         title = "🏭 Efluentes - Comparativa LMP/NMP"
         default_file = "bbdd_molde_efluentes.xlsx"
         reg_defaults_filter = [] # No smart filter for effluents defined yet, or default to all
         success_msg_prefix = "Efluentes"
+    elif module_type == "sediments":
+        title = "⛰️ Sedimentos - Comparativa CCME"
+        default_file = "bbdd_molde_sedimentos.xlsx"
+        reg_defaults_filter = [] # Defaults handled later
+        success_msg_prefix = "Sedimentos"
+    else:
+        title = "Módulo Desconocido"
+        default_file = ""
+        reg_defaults_filter = []
+        success_msg_prefix = "Datos"
 
     # Navigation Back Button
     if st.button("⬅️ Volver al Inicio"):
@@ -191,6 +206,25 @@ def water_quality_module(module_type="surface"):
                         index=4 
                     )
                     
+                    # Date Format
+                    date_format_options = {"Mes-Año (Ene-25)": "MM-YY", "Día-Mes-Año (23-Ene-25)": "DD-MM-YY"}
+                    selected_date_format_label = st.sidebar.selectbox(
+                        "Formato de Fecha (Eje X)",
+                        options=list(date_format_options.keys()),
+                        index=0
+                    )
+                    selected_date_format = date_format_options[selected_date_format_label]
+                    
+                    # Number of X-axis Labels (0 = Auto)
+                    custom_x_labels = st.sidebar.number_input(
+                        "Cantidad de Etiquetas (Eje X) (0 = Auto)",
+                        min_value=0,
+                        max_value=50,
+                        value=0,
+                        step=1,
+                        help="Establece un número fijo de etiquetas en el eje X. Deja en 0 para automático."
+                    )
+                    
                     # Symbol Style
                     symbol_options = {"Círculo": "circle", "Variado": "varied"}
                     selected_symbol_label = st.sidebar.selectbox(
@@ -208,6 +242,8 @@ def water_quality_module(module_type="surface"):
                             selected_param, 
                             selected_columns=selected_cols,
                             date_angle=selected_angle,
+                            date_format=selected_date_format,
+                            x_label_count=custom_x_labels,
                             legend_position=legend_pos_options[selected_legend_pos],
                             symbol_style=selected_symbol_style
                         )
@@ -250,5 +286,7 @@ elif st.session_state['page'] == 'surface':
     water_quality_module(module_type="surface")
 elif st.session_state['page'] == 'effluents':
     water_quality_module(module_type="effluents")
+elif st.session_state['page'] == 'sediments':
+    water_quality_module(module_type="sediments")
 
 

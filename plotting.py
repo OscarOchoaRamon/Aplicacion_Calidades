@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 import pandas as pd
 
-def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_position="right", symbol_style="circle"):
+def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle"):
     """
     Creates an interactive Plotly chart for a specific parameter.
     Dynamically adds regulation lines found in the dataframe.
@@ -61,7 +61,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
         
     # 2. Add Regulation Lines
     # Identify regulation columns
-    limit_cols = [col for col in df.columns if col.startswith('lim_')]
+    limit_cols = [col for col in df.columns if col.startswith('lim_') or col.startswith('ISGQ') or col.startswith('PEL')]
     
     # Filter if user selected specific ones
     if selected_columns is not None:
@@ -147,6 +147,15 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
             year = parts[1]
             reg_body = f"LMP {year}"
             category = " ".join(parts[2:]).replace("_", " ").lower()
+
+        # --- SEDIMENTS LABELS ---
+        elif 'ISGQ' in col_name or 'PEL' in col_name:
+             # ISGQ_freshwater -> parts: ['ISGQ', 'freshwater']
+             reg_body = parts[0] # ISGQ or PEL
+             category = " ".join(parts[1:]).capitalize() # freshwater -> Freshwater
+             
+             prefix = "" # No Lim. inf./sup. prefix for these usually
+             return f"{reg_body}<br>{category}"
 
         else:
             reg_body = parts[0].upper()
@@ -252,6 +261,15 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
                     dash = 'dash' # --, alpha=0.5
                     color = 'rgba(255, 0, 0, 0.5)'
 
+            # --- SEDIMENTS STYLES ---
+            elif 'isgq' in col_lower:
+                color = 'purple'
+                dash = 'dashdot' # -.
+            
+            elif 'pel' in col_lower:
+                color = 'red'
+                dash = 'dashdot' # -.
+
             # Add Line Trace
             fig.add_trace(go.Scatter(
                 x=[subset['fecha'].min(), subset['fecha'].max()],
@@ -339,18 +357,27 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
         # Heuristic for "appropriate amount" of ticks (Python choosing defaults)
         # Target: Avoid overcrowding. For 15cm width (~570px), maybe 8-12 labels max.
         
-        if delta_days <= 60:
-             freq = '5D' # Every 5 days for short ranges
-        elif delta_days <= 365: # 1 year -> Monthly
-            freq = 'MS' # Month Start
-        elif delta_days <= 365 * 2: # 2 years -> Every 2 months
-            freq = '2MS'
-        elif delta_days <= 365 * 5: # 5 years -> Every 6 months
-            freq = '6MS'
-        else: # > 5 years -> Yearly
-            freq = 'AS' # Year Start
-            
-        tick_dates = pd.date_range(start=min_date, end=max_date, freq=freq)
+        if x_label_count > 0:
+            # Manual count: Generate 'periods=x_label_count' evenly spaced dates
+            # We want at least the start and end, and intermediates
+            if x_label_count == 1:
+                tick_dates = pd.DatetimeIndex([min_date])
+            else:
+                 tick_dates = pd.date_range(start=min_date, end=max_date, periods=x_label_count)
+        else:
+            # Auto logic
+            if delta_days <= 60:
+                 freq = '5D' # Every 5 days for short ranges
+            elif delta_days <= 365: # 1 year -> Monthly
+                freq = 'MS' # Month Start
+            elif delta_days <= 365 * 2: # 2 years -> Every 2 months
+                freq = '2MS'
+            elif delta_days <= 365 * 5: # 5 years -> Every 6 months
+                freq = '6MS'
+            else: # > 5 years -> Yearly
+                freq = 'AS' # Year Start
+                
+            tick_dates = pd.date_range(start=min_date, end=max_date, freq=freq)
         
         # Spanish Month Names map
         spanish_months = {
@@ -360,7 +387,12 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, legend_po
         
         tick_vals = tick_dates
         # Use 2-digit year (e.g., '21' instead of '2021')
-        tick_text = [f"{spanish_months[d.month]}-{str(d.year)[-2:]}" for d in tick_dates]
+        if date_format == "DD-MM-YY":
+            # Format: 23-Ene-25
+            tick_text = [f"{d.day}-{spanish_months[d.month]}-{str(d.year)[-2:]}" for d in tick_dates]
+        else:
+            # Format: Ene-25 (Default)
+            tick_text = [f"{spanish_months[d.month]}-{str(d.year)[-2:]}" for d in tick_dates]
         
         fig.update_xaxes(
             tickmode='array', # CRITICAL: Forces Plotly to use our custom vals/text/

@@ -101,7 +101,7 @@ def get_regulation_columns(df):
     """
     cols = []
     for col in df.columns:
-        if col.startswith('lim_') or col.startswith('ISGQ') or col.startswith('PEL'):
+        if col.startswith('lim_') or col.startswith('ISQG') or col.startswith('PEL'):
             cols.append(col)
     return cols
 
@@ -116,12 +116,12 @@ def get_regulation_groups(df):
     
     for col in limit_cols:
         # Generate friendly name
-        # Handle Sediment columns (ISGQ, PEL) which don't have lim_ prefix usually in the sheet,
+        # Handle Sediment columns (ISQG, PEL) which don't have lim_ prefix usually in the sheet,
         # BUT the get_regulation_columns function assumes they start with 'lim_'.
-        # Wait, if the user file has 'ISGQ_freshwater' directly, it won't be picked up by get_regulation_columns.
+        # Wait, if the user file has 'ISQG_freshwater' directly, it won't be picked up by get_regulation_columns.
         # I need to check if get_regulation_columns needs update too?
         # The reference code says: df = datos.merge(eca...)
-        # In the sediment file 'bbdd_molde_sedimentos.xlsx' sheet 'normativa', headers are likely 'ISGQ_freshwater' etc.
+        # In the sediment file 'bbdd_molde_sedimentos.xlsx' sheet 'normativa', headers are likely 'ISQG_freshwater' etc.
         # So they won't start with 'lim_'. 
         
         # We need to sanitize column names or handle them here. 
@@ -130,10 +130,10 @@ def get_regulation_groups(df):
         name = col.replace('lim_inf_', '').replace('lim_sup_', '').replace('lim_', '')
         
         # Sediment logic
-        if 'ISGQ' in col or 'PEL' in col:
-            # col might be 'ISGQ_freshwater'
+        if 'ISQG' in col or 'PEL' in col:
+            # col might be 'ISQG_freshwater'
             parts = col.split('_')
-            # Assuming format TYPE_ENVIRONMENT (ISGQ_freshwater)
+            # Assuming format TYPE_ENVIRONMENT (ISQG_freshwater)
             if len(parts) >= 2:
                  # Group by Environment? Or just "CCME 2001" as the group?
                  # content: CCME_2001_FRESHWATER = True/False
@@ -168,4 +168,5 @@ def calculate_reference_statistics(df, method='mean_plus_2std'):
         return mean_val - (2 * std_val)
     else:
         return mean_val + (2 * std_val)
+
 

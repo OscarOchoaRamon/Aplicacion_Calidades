@@ -239,6 +239,9 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
                 # But kept logic simple above, let's refine for correctness:
                 if 'eca_2015_3d2' in col_lower:
                      color = 'blue'
+
+                if 'eca_2008_3d1' in col_lower:
+                     color = 'rgba(100, 50, 53, 0.5)'
                 
                 # Refine dash style for older regs
                 if 'lim_inf' in col_lower:

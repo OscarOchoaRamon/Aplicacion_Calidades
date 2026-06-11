@@ -10,8 +10,6 @@ import texto_calidad_efluente
 import texto_calidad_sedimentos
 
 # --- CUSTOM FONT REGISTRATION ---
-# --- CUSTOM FONT REGISTRATION ---
-# --- CUSTOM FONT REGISTRATION ---
 # Attempt to register Bookman Old Style fonts if they exist
 # Windows filenames: BOOKOS.TTF (Regular), BOOKOSB.TTF (Bold), BOOKOSI.TTF (Italic), BOOKOSBI.TTF (Bold Italic)
 font_files = ["BOOKOS.TTF", "BOOKOSB.TTF", "BOOKOSI.TTF", "BOOKOSBI.TTF", "BookmanOldStyle.ttf"]
@@ -82,8 +80,6 @@ def landing_page():
             navigate_to('sediments')
             st.rerun()
 
-
-
 def water_quality_module(module_type="surface"):
     """
     Generic function to render the water quality module.
@@ -101,11 +97,6 @@ def water_quality_module(module_type="surface"):
         default_file = "bbdd_molde_efluentes.xlsx"
         reg_defaults_filter = [] # No smart filter for effluents defined yet, or default to all
         success_msg_prefix = "Efluentes"
-    elif module_type == "sediments":
-        title = "⛰️ Sedimentos - Comparativa CCME"
-        default_file = "bbdd_molde_sedimentos.xlsx"
-        reg_defaults_filter = [] # Defaults handled later
-        success_msg_prefix = "Sedimentos"
     elif module_type == "sediments":
         title = "⛰️ Sedimentos - Comparativa CCME"
         default_file = "bbdd_molde_sedimentos.xlsx"
@@ -179,8 +170,6 @@ def water_quality_module(module_type="surface"):
                             mask = df_final['parametro'] == param
                             subset = df_final[mask]
                             
-                            # Calculate both always, so they are available if selected later or now? 
-                            # Actually sticking to calculating everything is cleaner.
                             ref_val_sup = calculate_reference_statistics(subset, method='mean_plus_2std')
                             ref_val_inf = calculate_reference_statistics(subset, method='mean_minus_2std')
                             
@@ -216,7 +205,6 @@ def water_quality_module(module_type="surface"):
                                     if any(f in name for f in reg_defaults_filter)
                                 ]
                             else:
-                                # For effluents, maybe default to all is safer initially?
                                 defaults = standard_names
 
                             # Fallback if filter found nothing
@@ -273,7 +261,7 @@ def water_quality_module(module_type="surface"):
                     selected_single_line = st.sidebar.checkbox(
                         "Etiquetas de normativa en una sola línea",
                         value=default_single_line,
-                        help="Muestra las etiquetas de las normativas en una sola línea (ej: 'Lím. inf. ECA-2017 Cat. 3-D1' en lugar de usar salto de línea). Esto hace que la leyenda sea más compacta."
+                        help="Muestra las etiquetas de las normativas en una sola línea. Esto hace que la leyenda sea más compacta."
                     )
                     
                     # Horizontal Legend specific controls
@@ -283,7 +271,7 @@ def water_quality_module(module_type="surface"):
                         align_cols = st.sidebar.checkbox(
                             "Alinear en columnas",
                             value=True,
-                            help="Si se activa, alinea los elementos de la leyenda en columnas. Si se desactiva, los elementos se colocan uno tras otro de forma muy compacta."
+                            help="Si se activa, alinea los elementos de la leyenda en columnas."
                         )
                         if align_cols:
                             selected_legend_cols = st.sidebar.number_input(
@@ -292,9 +280,8 @@ def water_quality_module(module_type="surface"):
                                 max_value=10,
                                 value=5,
                                 step=1,
-                                help="Número de columnas en las que se dividirá la leyenda cuando está en la parte inferior."
+                                help="Número de columnas en las que se dividirá la leyenda."
                             )
-                            # Let them adjust column width, default to 480 / cols
                             selected_entry_width = st.sidebar.slider(
                                 "Ancho de columnas de la leyenda (px)",
                                 min_value=15,
@@ -304,7 +291,7 @@ def water_quality_module(module_type="surface"):
                                 help="Ajusta el ancho de cada columna. Un ancho menor junta más las etiquetas."
                             )
                         else:
-                            selected_entry_width = 0 # 0 indicates compact layout
+                            selected_entry_width = 0 
                     
                     # Date Angle
                     angle_options = [0, 90, 45, -45, -90]
@@ -350,11 +337,9 @@ def water_quality_module(module_type="surface"):
                             texto_generado = ""
                             
                             if module_type == "surface":
-                                # Resetear variables globales
                                 for var in dir(texto_calidad_agua_superficial):
                                     if var.startswith("ECA_") or var.startswith("LGA_"):
                                         setattr(texto_calidad_agua_superficial, var, False)
-                                # Activar las seleccionadas
                                 if selected_standards:
                                     for std in selected_standards:
                                         if std.startswith("ECA"):
@@ -399,7 +384,6 @@ def water_quality_module(module_type="surface"):
 
                     # 4. Visualization
                     if selected_param:
-                        # Pass the filtered columns AND styling options to the plotting function
                         fig = create_chart(
                             df_final, 
                             selected_param, 
@@ -416,24 +400,22 @@ def water_quality_module(module_type="surface"):
                         )
                         
                         if fig:
-                            # --- STATIC DISPLAY ---
-                            try:
-                                # Fixed dimensions for static preview
-                                img_bytes = fig.to_image(format="png", width=586, height=302, scale=3)
-                                
-                                st.image(img_bytes, caption=f"Vista Previa Estática: {selected_param}", output_format="PNG")
-                                
-                                # --- DOWNLOAD BUTTONS ---
-                                st.download_button(
-                                    label="📸 Descargar Imagen (PNG)",
-                                    data=img_bytes,
-                                    file_name=f"{selected_param}.png",
-                                    mime="image/png"
-                                )
-
-                            except Exception as e:
-                                st.error(f"Error generando visualización estática: {e}. Asegúrate de tener 'kaleido' instalado.")
-                                st.plotly_chart(fig, use_container_width=False)
+                            import io
+                            # Guardar la figura de Matplotlib en memoria
+                            buf = io.BytesIO()
+                            fig.savefig(buf, format="png", dpi=300, bbox_inches='tight', pad_inches=0.1)
+                            buf.seek(0)
+                            
+                            # Mostrar en Streamlit
+                            st.image(buf, caption=f"Gráfico Generado: {selected_param}", output_format="PNG")
+                            
+                            # Botón de Descarga
+                            st.download_button(
+                                label="📸 Descargar Imagen (PNG)",
+                                data=buf.getvalue(),
+                                file_name=f"{selected_param}.png",
+                                mime="image/png"
+                            )
                         else:
                             st.warning("No hay datos para graficar con este parámetro.")
                             

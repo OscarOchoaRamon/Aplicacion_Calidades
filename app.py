@@ -267,16 +267,44 @@ def water_quality_module(module_type="surface"):
                         step=0.5,
                         help="Ajusta el tamaño del texto de la leyenda en la gráfica."
                     )
-                    
-                    # Legend Columns (only applied when position is Bottom)
-                    selected_legend_cols = st.sidebar.number_input(
-                        "Columnas de la Leyenda (Solo Abajo)",
-                        min_value=1,
-                        max_value=10,
-                        value=5,
-                        step=1,
-                        help="Número de columnas en las que se dividirá la leyenda cuando está en la parte inferior."
+
+                    # Single line labels option
+                    default_single_line = (legend_pos_options[selected_legend_pos] == "bottom")
+                    selected_single_line = st.sidebar.checkbox(
+                        "Etiquetas de normativa en una sola línea",
+                        value=default_single_line,
+                        help="Muestra las etiquetas de las normativas en una sola línea (ej: 'Lím. inf. ECA-2017 Cat. 3-D1' en lugar de usar salto de línea). Esto hace que la leyenda sea más compacta."
                     )
+                    
+                    # Horizontal Legend specific controls
+                    selected_entry_width = None
+                    selected_legend_cols = 5
+                    if legend_pos_options[selected_legend_pos] == "bottom":
+                        align_cols = st.sidebar.checkbox(
+                            "Alinear en columnas",
+                            value=True,
+                            help="Si se activa, alinea los elementos de la leyenda en columnas. Si se desactiva, los elementos se colocan uno tras otro de forma muy compacta."
+                        )
+                        if align_cols:
+                            selected_legend_cols = st.sidebar.number_input(
+                                "Columnas de la Leyenda (Solo Abajo)",
+                                min_value=1,
+                                max_value=10,
+                                value=5,
+                                step=1,
+                                help="Número de columnas en las que se dividirá la leyenda cuando está en la parte inferior."
+                            )
+                            # Let them adjust column width, default to 480 / cols
+                            selected_entry_width = st.sidebar.slider(
+                                "Ancho de columnas de la leyenda (px)",
+                                min_value=15,
+                                max_value=200,
+                                value=int(480 / selected_legend_cols),
+                                step=5,
+                                help="Ajusta el ancho de cada columna. Un ancho menor junta más las etiquetas."
+                            )
+                        else:
+                            selected_entry_width = 0 # 0 indicates compact layout
                     
                     # Date Angle
                     angle_options = [0, 90, 45, -45, -90]
@@ -382,7 +410,9 @@ def water_quality_module(module_type="surface"):
                             legend_position=legend_pos_options[selected_legend_pos],
                             symbol_style=selected_symbol_style,
                             legend_size=selected_legend_size,
-                            legend_cols=selected_legend_cols
+                            legend_cols=selected_legend_cols,
+                            single_line=selected_single_line,
+                            entry_width=selected_entry_width
                         )
                         
                         if fig:
@@ -427,5 +457,3 @@ elif st.session_state['page'] == 'effluents':
     water_quality_module(module_type="effluents")
 elif st.session_state['page'] == 'sediments':
     water_quality_module(module_type="sediments")
-
-

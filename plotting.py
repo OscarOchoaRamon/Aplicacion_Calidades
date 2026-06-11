@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 import pandas as pd
 
-def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=None, legend_cols=None):
+def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=None, legend_cols=None, single_line=None, entry_width=None):
     """
     Creates an interactive Plotly chart for a specific parameter.
     Dynamically adds regulation lines found in the dataframe.
@@ -85,8 +85,9 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     limit_cols = [col for col in df.columns if col.startswith('lim_') or col.startswith('ISQG') or col.startswith('PEL')]
     
     # Filter if user selected specific ones
-    if selected_columns is not None:
-        limit_cols = [col for col in limit_cols if col in selected_columns]
+    if True:
+        if selected_columns is not None:
+            limit_cols = [col for col in limit_cols if col in selected_columns]
         
         def get_legend_label(col_name, single_line=False):
             """
@@ -210,7 +211,8 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         val = subset[col].iloc[0]
         
         if pd.notna(val):
-            label = get_legend_label(col, single_line=(legend_position == "bottom"))
+            use_single_line = single_line if single_line is not None else (legend_position == "bottom")
+            label = get_legend_label(col, single_line=use_single_line)
             
             # --- STYLE LOGIC ---
             # Defaults
@@ -365,13 +367,6 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             else:
                 font_size = 6.0
             
-        if legend_cols is not None and legend_cols > 0:
-            entrywidth = int(480 / legend_cols)
-            cols_count = legend_cols
-        else:
-            entrywidth = 90
-            cols_count = 5
-            
         legend_layout = dict(
             font=dict(family="Bookman Old Style, serif", size=font_size, color="black"),
             title=dict(text=""),
@@ -380,9 +375,28 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             y=-0.25, # Pull it slightly closer to the axis
             xanchor="center",
             x=0.5,
-            entrywidth=entrywidth, # Size elements based on requested columns count
-            entrywidthmode="pixels"
+            tracegroupgap=0,  # Fuerza el espacio vertical al mínimo
+            itemwidth=25,     # Reduce el ancho del símbolo para ganar espacio horizontal
         )
+        
+        # Determine entrywidth and columns
+        if entry_width is not None:
+            if entry_width > 0:
+                legend_layout['entrywidth'] = entry_width
+                legend_layout['entrywidthmode'] = 'pixels'
+                cols_count = max(1, int(480 / entry_width))
+            else:
+                # Compact layout: do not set entrywidth, let Plotly pack items closely
+                cols_count = 5 # default estimate for margin calculation
+        else:
+            if legend_cols is not None and legend_cols > 0:
+                entrywidth = int(480 / legend_cols)
+                cols_count = legend_cols
+            else:
+                entrywidth = 90
+                cols_count = 5
+            legend_layout['entrywidth'] = entrywidth
+            legend_layout['entrywidthmode'] = 'pixels'
         
         # Adjust bottom margin dynamically based on estimated rows of legend
         estimated_rows = max(1, total_legend_items // cols_count + 1)
@@ -407,7 +421,9 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             yanchor="top",
             y=1,
             xanchor="left",
-            x=1.02
+            x=1.02,
+            tracegroupgap=0,  # Evita separaciones extras entre items
+            itemwidth=25,     # Acerca el texto al marcador
         )
     
     fig.update_layout(
@@ -516,23 +532,3 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     fig.update_layout(font=dict(family="Bookman Old Style, serif", size=9, color="black"))
     
     return fig
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

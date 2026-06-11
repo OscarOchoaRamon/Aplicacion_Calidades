@@ -376,7 +376,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             xanchor="center",
             x=0.5,
             tracegroupgap=0,  # Fuerza el espacio vertical al mínimo
-            itemwidth=25,     # Reduce el ancho del símbolo para ganar espacio horizontal
+            itemwidth=30,     # Reduce el ancho del símbolo para ganar espacio horizontal
         )
         
         # Determine entrywidth and columns
@@ -423,7 +423,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             xanchor="left",
             x=1.02,
             tracegroupgap=0,  # Evita separaciones extras entre items
-            itemwidth=25,     # Acerca el texto al marcador
+            itemwidth=30,     # Acerca el texto al marcador
         )
     
     fig.update_layout(

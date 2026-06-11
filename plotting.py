@@ -73,6 +73,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             y=station_data.get('valor_num', station_data['valor']),
             mode='markers',
             name=station,
+            legendgroup=station,
             marker=dict(
                 size=5.5, # Increased size to make open/filled shapes and colors clearly visible
                 symbol=marker_symbol,
@@ -331,6 +332,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
                 y=[val, val],
                 mode='lines',
                 name=label,
+                legendgroup=label,
                 line=dict(color=color, dash=dash, width=width),
                 hoverinfo='name+y'
             ))
@@ -369,14 +371,13 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             
         legend_layout = dict(
             font=dict(family="Bookman Old Style, serif", size=font_size, color="black"),
-            title=dict(text=""),
             orientation="h",
             yanchor="top",
             y=-0.25, # Pull it slightly closer to the axis
             xanchor="center",
             x=0.5,
-            tracegroupgap=0,  # Fuerza el espacio vertical al mínimo
-            itemwidth=30,     # Reduce el ancho del símbolo para ganar espacio horizontal
+            tracegroupgap=0,
+            itemwidth=30,
         )
         
         # Determine entrywidth and columns
@@ -416,14 +417,13 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             
         legend_layout = dict(
             font=dict(family="Bookman Old Style, serif", size=font_size, color="black"),
-            title=dict(text=""),
             orientation="v",
             yanchor="top",
             y=1,
             xanchor="left",
             x=1.02,
-            tracegroupgap=0,  # Evita separaciones extras entre items
-            itemwidth=30,     # Acerca el texto al marcador
+            tracegroupgap=0,
+            itemwidth=30,
         )
     
     fig.update_layout(

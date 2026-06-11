@@ -20,7 +20,7 @@ for font_file in font_files:
         except Exception:
             pass
 
-def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=7.0, legend_cols=5, single_line=True, entry_width=None):
+def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=7.0, legend_cols=5):
     
     # Filtrar datos
     subset = df[df['parametro'] == parameter].copy()
@@ -61,7 +61,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     if selected_columns is not None:
         limit_cols = [col for col in limit_cols if col in selected_columns]
 
-    def get_legend_label(col_name, single_line=False):
+    def get_legend_label(col_name, single_line=True):
         if 'lim_inf_' in col_name:
             prefix, clean_col = ("L.inf." if single_line else "Lím. inf."), col_name.replace('lim_inf_', '')
         elif 'lim_sup_' in col_name:
@@ -106,8 +106,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     for col in limit_cols:
         val = subset[col].iloc[0]
         if pd.notna(val):
-            use_single_line = single_line if single_line is not None else (legend_position == "bottom")
-            label = get_legend_label(col, single_line=use_single_line)
+            label = get_legend_label(col, single_line=True)
             
             col_lower, color, linestyle, alpha, lw = col.lower(), 'black', '-', 1.0, 1.5
             

@@ -1,6 +1,24 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.font_manager as font_manager
 import pandas as pd
+import os
+
+# --- REGISTRO DIRECTO DE FUENTES PARA MATPLOTLIB ---
+# Obligamos a Matplotlib a cargar los archivos locales en su memoria interna
+font_files = ["BOOKOS.TTF", "BOOKOSB.TTF", "BOOKOSI.TTF", "BOOKOSBI.TTF", "BookmanOldStyle.ttf"]
+custom_font_name = 'serif' # Fallback por defecto
+
+for font_file in font_files:
+    if os.path.exists(font_file):
+        try:
+            # Añadimos la fuente al gestor de Matplotlib
+            font_manager.fontManager.addfont(font_file)
+            # Extraemos el nombre exacto con el que Matplotlib la registra internamente
+            prop = font_manager.FontProperties(fname=font_file)
+            custom_font_name = prop.get_name()
+        except Exception:
+            pass
 
 def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=7.0, legend_cols=5, single_line=True, entry_width=None):
     
@@ -12,10 +30,12 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     subset['fecha'] = pd.to_datetime(subset['fecha'])
     unit = subset['unidad'].iloc[0] if 'unidad' in subset.columns else ""
     
-    # Configuración Global de Fuentes para Matplotlib
-    plt.rcParams['font.family'] = 'serif'
-    # Intentará cargar Bookman Old Style, si no, usará la fuente serif del sistema
-    plt.rcParams['font.serif'] = ['Bookman Old Style', 'Times New Roman', 'serif']
+    # --- CONFIGURACIÓN GLOBAL DE FUENTES ---
+    plt.rcParams['font.family'] = custom_font_name
+    if custom_font_name == 'serif':
+        # Fallback de emergencia por si no encuentra el archivo TTF
+        plt.rcParams['font.serif'] = ['Bookman Old Style', 'Times New Roman', 'serif']
+        
     plt.rcParams['font.size'] = 9
     plt.rcParams['axes.linewidth'] = 1
     
@@ -42,7 +62,6 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         limit_cols = [col for col in limit_cols if col in selected_columns]
 
     def get_legend_label(col_name, single_line=False):
-        # Lógica de traducción de etiquetas (Adaptada para usar \n en lugar de <br>)
         if 'lim_inf_' in col_name:
             prefix, clean_col = ("L.inf." if single_line else "Lím. inf."), col_name.replace('lim_inf_', '')
         elif 'lim_sup_' in col_name:
@@ -126,29 +145,23 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     if x_label_count > 0:
         ax.xaxis.set_major_locator(plt.MaxNLocator(x_label_count))
     else:
-        ax.xaxis.set_major_locator(plt.MaxNLocator(8)) # Automático optimizado
+        ax.xaxis.set_major_locator(plt.MaxNLocator(8)) 
         
     plt.xticks(rotation=date_angle)
     
-    # Quitar bordes superior y derecho (Estilo limpio)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     
-    # 4. LA LEYENDA (Aquí está la magia de compresión)
-    # labelspacing: Controla la separación vertical entre filas (0.2 las junta muchísimo)
-    # handletextpad: Controla la separación horizontal entre el punto/línea y el texto
-    # columnspacing: Controla la separación entre columnas
-    
+    # 4. LA LEYENDA
     if legend_position == "bottom":
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.25),
                   ncol=legend_cols, fontsize=legend_size, frameon=False,
                   labelspacing=0.2, handletextpad=0.3, columnspacing=0.8)
-    else: # right
+    else: 
         ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1),
                   ncol=1, fontsize=legend_size, frameon=False,
                   labelspacing=0.2, handletextpad=0.3)
                   
-    # Ajustar bordes para que nada quede cortado al guardar
     plt.tight_layout()
     
     return fig

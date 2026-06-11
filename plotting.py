@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 import pandas as pd
 
-def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle"):
+def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=None, legend_cols=None):
     """
     Creates an interactive Plotly chart for a specific parameter.
     Dynamically adds regulation lines found in the dataframe.
@@ -29,10 +29,27 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     fig = go.Figure()
     
     # Define symbol sequence for "varied" option
-    # Plotly symbols: circle, square, diamond, cross, x, triangle-up, triangle-down, etc.
+    # Combines filled and open shapes to maximize visual distinction, avoiding similar looking squares/rectangles
     symbol_sequence = [
-        'circle', 'square', 'diamond', 'cross', 'x', 
-        'triangle-up', 'triangle-down', 'star', 'hexagon', 'pentagon'
+        'circle', 'square', 'diamond', 'triangle-up', 'pentagon', 
+        'hexagon', 'star', 'circle-open', 'square-open', 'diamond-open', 
+        'triangle-up-open', 'pentagon-open', 'hexagon-open', 'star-open', 'cross', 
+        'x', 'bowtie', 'hourglass', 'triangle-down', 'triangle-left', 
+        'triangle-right', 'triangle-down-open', 'triangle-left-open', 'triangle-right-open', 'cross-open', 
+        'hash', 'y-up', 'y-down', 'y-left', 'y-right', 
+        'octagon', 'octagon-open', 'hexagram'
+    ]
+    
+    # Define color sequence to prevent duplicates for up to 33 stations.
+    # Uses highly distinct colors (Glasbey/Boynton/Kelly standard) for maximum human eye distinction.
+    color_sequence = [
+        '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 
+        '#911eb4', '#42d4f4', '#f032e6', '#7fff00', '#fabed4', 
+        '#469990', '#dcbeff', '#9a6324', '#4b0082', '#800000', 
+        '#aaffc3', '#808000', '#ffd8b1', '#000075', '#a9a9a9', 
+        '#333333', '#ffd700', '#ff7f50', '#87ceeb', '#a87858', 
+        '#ff69b4', '#dda0dd', '#40e0d0', '#d2691e', '#4682b4', 
+        '#7fff00', '#4b0082', '#04bbfc'
     ]
     
     # 1. Add Scatter Traces for each station
@@ -48,14 +65,18 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         else:
             marker_symbol = 'circle'
             
+        # Determine color from custom palette
+        marker_color = color_sequence[i % len(color_sequence)]
+            
         fig.add_trace(go.Scatter(
             x=station_data['fecha'],
-            y=station_data['valor'],
+            y=station_data.get('valor_num', station_data['valor']),
             mode='markers',
             name=station,
             marker=dict(
-                size=4.0, # Increased by 50% from 2.7
-                symbol=marker_symbol
+                size=5.5, # Increased size to make open/filled shapes and colors clearly visible
+                symbol=marker_symbol,
+                color=marker_color
             ) 
         ))
         
@@ -67,121 +88,129 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     if selected_columns is not None:
         limit_cols = [col for col in limit_cols if col in selected_columns]
         
-    def get_legend_label(col_name):
-        """
-        Translates column name to specific multi-line legend label
-        matching requirements from original script.
-        E.g. lim_inf_eca_2017_3d1 -> 'Lím. inf. ECA-2017\nCat. 3-D1'
-        """
-        # 1. Determine Type (Inf/Sup)
-        if 'lim_inf_' in col_name:
-            prefix = "Lím. inf."
-            clean_col = col_name.replace('lim_inf_', '')
-        elif 'lim_sup_' in col_name:
-            prefix = "Lím. sup."
-            clean_col = col_name.replace('lim_sup_', '')
-        else:
-            prefix = "Lím."
-            clean_col = col_name.replace('lim_', '')
-            
-        # 2. Determine Regulation Body (ECA-2017, LGA, etc.)
-        # Common patterns: eca_2017_..., eca_2008_..., lga_...
-        
-        parts = clean_col.split('_')
-        
-        if parts[0] == 'lga':
-            reg_body = "LGA"
-            # categories like I, II, III
-            cat_part = parts[1] if len(parts) > 1 else ""
-            category = f"Cat. {cat_part}"
-            
-        elif parts[0] == 'eca':
-            # eca_2017_3d1 -> parts: ['eca', '2017', '3d1']
-            year = parts[1]
-            reg_body = f"ECA-{year}"
-            
-            # Category formatting is tricky: 3d1 -> 3-D1, 4e2_cys -> 4-E2 costa y sierra
-            # Let's join the rest
-            cat_raw = "_".join(parts[2:])
-            
-            # Specific Mappings for categories
-            # We can try to format generically: 3d1 -> 3-D1
-            # But 'cys' -> 'costa y sierra' needs explicit map
-            
-            cat_map = {
-                'cys': 'costa y sierra',
-                's': 'selva',
-                'e': 'estuario',
-                'm': 'mar'
-            }
-            
-            # Check for special suffixes
-            suffix_desc = ""
-            for k, v in cat_map.items():
-                if cat_raw.endswith(f"_{k}"):
-                     suffix_desc = f" {v}"
-                     cat_raw = cat_raw.replace(f"_{k}", "") # Remove suffix to format the code
-                     break
-            
-            # Format code like '3d1' -> '3-D1'
-            # Assuming pattern digit-letter-digit
-            if len(cat_raw) >= 3 and cat_raw[0].isdigit() and cat_raw[-1].isdigit():
-                 # 3d1 -> 3-D1
-                 code = f"{cat_raw[0]}-{cat_raw[1:].upper()}"
-                 category = f"Cat. {code}{suffix_desc}"
-            elif len(cat_raw) >= 3 and cat_raw[0].isdigit():
-                 # 4e1 -> 4-E1
-                 code = f"{cat_raw[0]}-{cat_raw[1:].upper()}"
-                 category = f"Cat. {code}{suffix_desc}"
+        def get_legend_label(col_name, single_line=False):
+            """
+            Translates column name to specific multi-line legend label
+            matching requirements from original script.
+            E.g. lim_inf_eca_2017_3d1 -> 'Lím. inf. ECA-2017\nCat. 3-D1'
+            """
+            # 1. Determine Type (Inf/Sup)
+            if 'lim_inf_' in col_name:
+                prefix = "L.inf." if single_line else "Lím. inf."
+                clean_col = col_name.replace('lim_inf_', '')
+            elif 'lim_sup_' in col_name:
+                prefix = "L.sup." if single_line else "Lím. sup."
+                clean_col = col_name.replace('lim_sup_', '')
             else:
-                 # Fallback
-                 category = f"Cat. {cat_raw.upper()}{suffix_desc}"
-
-        # --- EFFLUENTS LABELS ---
-        elif parts[0] == 'nmp':
-            reg_body = "NMP"
-            category = " ".join(parts[1:]).replace("_", " ").lower() # minero -> minero
-        
-        elif parts[0] == 'lmp':
-            # lmp_2010_domestico -> parts: ['lmp', '2010', 'domestico']
-            year = parts[1]
-            reg_body = f"LMP {year}"
-            category = " ".join(parts[2:]).replace("_", " ").lower()
-
-        # --- SEDIMENTS LABELS ---
-        elif 'ISQG' in col_name or 'PEL' in col_name:
-             # ISQG_freshwater -> parts: ['ISQG', 'freshwater']
-             reg_body = parts[0] # ISQG or PEL
-             category = " ".join(parts[1:]).capitalize() # freshwater -> Freshwater
-             
-             prefix = "" # No Lim. inf./sup. prefix for these usually
-             return f"{reg_body}<br>{category}"
-
-        # --- GROUNDWATER REFERENCE ---
-        elif 'referencia_gw_sup' in col_name:
-            reg_body = "Valor Referencial"
-            category = "Promedio + 2 Desv. Est."
-            prefix = "" 
-            return f"{reg_body}<br>{category}"
+                prefix = "L." if single_line else "Lím."
+                clean_col = col_name.replace('lim_', '')
+                
+            # 2. Determine Regulation Body (ECA-2017, LGA, etc.)
+            # Common patterns: eca_2017_..., eca_2008_..., lga_...
             
-        elif 'referencia_gw_inf' in col_name:
-            reg_body = "Valor Referencial"
-            category = "Promedio - 2 Desv. Est."
-            prefix = "" 
-            return f"{reg_body}<br>{category}"
-
-        else:
-            reg_body = parts[0].upper()
-            category = " ".join(parts[1:]).upper()
+            parts = clean_col.split('_')
             
-        return f"{prefix} {reg_body}<br>{category}" # Plotly uses <br> for newline
+            if parts[0] == 'lga':
+                reg_body = "LGA"
+                # categories like I, II, III
+                cat_part = parts[1] if len(parts) > 1 else ""
+                category = f"C.{cat_part}" if single_line else f"Cat. {cat_part}"
+                
+            elif parts[0] == 'eca':
+                # eca_2017_3d1 -> parts: ['eca', '2017', '3d1']
+                year = parts[1]
+                reg_body = f"ECA-{year[-2:]}" if single_line else f"ECA-{year}"
+                
+                # Category formatting is tricky: 3d1 -> 3-D1, 4e2_cys -> 4-E2 costa y sierra
+                # Let's join the rest
+                cat_raw = "_".join(parts[2:])
+                
+                # Specific Mappings for categories
+                # We can try to format generically: 3d1 -> 3-D1
+                # But 'cys' -> 'costa y sierra' needs explicit map
+                
+                cat_map = {
+                    'cys': 'costa y sierra',
+                    's': 'selva',
+                    'e': 'estuario',
+                    'm': 'mar'
+                }
+                
+                # Check for special suffixes
+                suffix_desc = ""
+                for k, v in cat_map.items():
+                    if cat_raw.endswith(f"_{k}"):
+                         suffix_desc = f" {v}"
+                         cat_raw = cat_raw.replace(f"_{k}", "") # Remove suffix to format the code
+                         break
+                
+                # Format code like '3d1' -> '3-D1'
+                # Assuming pattern digit-letter-digit
+                if len(cat_raw) >= 3 and cat_raw[0].isdigit() and cat_raw[-1].isdigit():
+                     # 3d1 -> 3-D1
+                     code = f"{cat_raw[0]}-{cat_raw[1:].upper()}"
+                     category = f"{code}{suffix_desc}" if single_line else f"Cat. {code}{suffix_desc}"
+                elif len(cat_raw) >= 3 and cat_raw[0].isdigit():
+                     # 4e1 -> 4-E1
+                     code = f"{cat_raw[0]}-{cat_raw[1:].upper()}"
+                     category = f"{code}{suffix_desc}" if single_line else f"Cat. {code}{suffix_desc}"
+                else:
+                     # Fallback
+                     category = f"{cat_raw.upper()}{suffix_desc}" if single_line else f"Cat. {cat_raw.upper()}{suffix_desc}"
+
+            # --- EFFLUENTS LABELS ---
+            elif parts[0] == 'nmp':
+                reg_body = "NMP"
+                category = "Min-96" if single_line else " ".join(parts[1:]).replace("_", " ").lower() # minero -> minero
+            
+            elif parts[0] == 'lmp':
+                # lmp_2010_domestico -> parts: ['lmp', '2010', 'domestico']
+                year = parts[1]
+                reg_body = f"LMP-{year[-2:]}" if single_line else f"LMP {year}"
+                category = "Dom" if "domestico" in col_name else ("Min" if "minero" in col_name else " ".join(parts[2:]).replace("_", " ").lower())
+
+            # --- SEDIMENTS LABELS ---
+            elif 'ISQG' in col_name or 'PEL' in col_name:
+                 # ISQG_freshwater -> parts: ['ISQG', 'freshwater']
+                 reg_body = parts[0] # ISQG or PEL
+                 category = "Fresh" if "freshwater" in col_name else ("Mar" if "marine" in col_name else " ".join(parts[1:]).capitalize())
+                 
+                 prefix = "" # No Lim. inf./sup. prefix for these usually
+                 if single_line:
+                     return f"{reg_body} {category}"
+                 return f"{reg_body}<br>{category}"
+
+            # --- GROUNDWATER REFERENCE ---
+            elif 'referencia_gw_sup' in col_name:
+                reg_body = "Valor Referencial"
+                category = "Promedio + 2 Desv. Est."
+                prefix = "" 
+                if single_line:
+                    return "Ref. Prom+2DE"
+                return f"{reg_body}<br>{category}"
+                
+            elif 'referencia_gw_inf' in col_name:
+                reg_body = "Valor Referencial"
+                category = "Promedio - 2 Desv. Est."
+                prefix = "" 
+                if single_line:
+                    return "Ref. Prom-2DE"
+                return f"{reg_body}<br>{category}"
+
+            else:
+                reg_body = parts[0].upper()
+                category = " ".join(parts[1:]).upper()
+                
+            if single_line:
+                return f"{prefix} {reg_body} {category}"
+            return f"{prefix} {reg_body}<br>{category}" # Plotly uses <br> for newline
 
     for col in limit_cols:
         # Get the single value for this parameter
         val = subset[col].iloc[0]
         
         if pd.notna(val):
-            label = get_legend_label(col)
+            label = get_legend_label(col, single_line=(legend_position == "bottom"))
             
             # --- STYLE LOGIC ---
             # Defaults
@@ -239,9 +268,6 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
                 # But kept logic simple above, let's refine for correctness:
                 if 'eca_2015_3d2' in col_lower:
                      color = 'blue'
-
-                if 'eca_2008_3d1' in col_lower:
-                     color = 'rgba(100, 50, 53, 0.5)'
                 
                 # Refine dash style for older regs
                 if 'lim_inf' in col_lower:
@@ -313,33 +339,76 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     # Width: 15.5 cm * 37.8 = 586 px
     # Height: 8 cm * 37.8 = 302 px
     
-    # Legend Position Logic
-    legend_layout = dict(
-        font=dict(family="Bookman Old Style, serif", size=7, color="black"),
-        title=dict(text="")
-    )
-    
+    # Count how many legend items there will be to determine dynamic layout
+    stations = subset['estacion'].unique()
+    num_stations = len(stations)
+    num_limits = 0
+    for col in limit_cols:
+        val = subset[col].iloc[0]
+        if pd.notna(val):
+            num_limits += 1
+    total_legend_items = num_stations + num_limits
+
     # Margin adjustments based on legend
     margin = dict(l=50, r=50, t=20, b=50)
-    
+
+    # Legend Position & Margin Logic
+    # We dynamically adjust font size and margins to fit all legend elements
     if legend_position == "bottom":
-        legend_layout.update(dict(
+        if legend_size is not None:
+            font_size = legend_size
+        else:
+            if total_legend_items <= 15:
+                font_size = 7.0
+            elif total_legend_items <= 25:
+                font_size = 6.5
+            else:
+                font_size = 6.0
+            
+        if legend_cols is not None and legend_cols > 0:
+            entrywidth = int(480 / legend_cols)
+            cols_count = legend_cols
+        else:
+            entrywidth = 90
+            cols_count = 5
+            
+        legend_layout = dict(
+            font=dict(family="Bookman Old Style, serif", size=font_size, color="black"),
+            title=dict(text=""),
             orientation="h",
             yanchor="top",
-            y=-0.3, # Push it below x-axis
+            y=-0.25, # Pull it slightly closer to the axis
             xanchor="center",
-            x=0.5
-        ))
-        # Increase bottom margin to accommodate legend
-        margin['b'] = 100 
+            x=0.5,
+            entrywidth=entrywidth, # Size elements based on requested columns count
+            entrywidthmode="pixels"
+        )
+        
+        # Adjust bottom margin dynamically based on estimated rows of legend
+        estimated_rows = max(1, total_legend_items // cols_count + 1)
+        margin = dict(l=50, r=50, t=20, b=max(70, 45 + estimated_rows * 12))
     else: # right (default)
-        legend_layout.update(dict(
+        if legend_size is not None:
+            font_size = legend_size
+        else:
+            if total_legend_items <= 12:
+                font_size = 7.0
+            elif total_legend_items <= 20:
+                font_size = 6.5
+            elif total_legend_items <= 30:
+                font_size = 6.0
+            else:
+                font_size = 5.5
+            
+        legend_layout = dict(
+            font=dict(family="Bookman Old Style, serif", size=font_size, color="black"),
+            title=dict(text=""),
             orientation="v",
             yanchor="top",
             y=1,
             xanchor="left",
             x=1.02
-        ))
+        )
     
     fig.update_layout(
         # Title removed as requested
@@ -402,7 +471,12 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             elif delta_days <= 365 * 5: # 5 years -> Every 6 months
                 freq = '6MS'
             else: # > 5 years -> Yearly
-                freq = 'YS' # Year Start
+                try:
+                    # Test if 'YS' is supported (Pandas 2.2.0+)
+                    pd.date_range(start=min_date, end=max_date, freq='YS')
+                    freq = 'YS'
+                except ValueError:
+                    freq = 'AS'
                 
             tick_dates = pd.date_range(start=min_date, end=max_date, freq=freq)
         

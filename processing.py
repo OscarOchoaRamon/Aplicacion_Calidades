@@ -32,49 +32,23 @@ def clean_data(df):
     Optimized cleaning of the 'valor' column.
     Handles '<' symbols and converts to numeric.
     """
-    # Create a copy to avoid SettingWithCopy warnings
     df = df.copy()
     
-    # Ensure 'valor' is string for string operations
-    # Using astype(str) might turn NaNs into "nan", so we handle that.
-    # But since we are looking for '<', we can coerce non-strings safely.
-    
-    # Vectorized detection of '<'
-    # valid strings are those that are actually strings.
-    # We'll operate on a series mask.
-    
-    # Force conversion to string to check for '<', but handle NaNs first if needed?
-    # Actually, pandas str accessor handles NaNs as NaNs usually.
-    
-    # We need to handle potential mixed types. 
-    # Let's coerce everything to string first for the check.
     s_values = df['valor'].astype(str)
-    
-    # Mask for values containing '<'
     mask_less = s_values.str.contains('<', na=False)
     
-    # 1. Handle values with '<'
-    # Remove '<', convert to float, divide by 2.
-    # We perform this only on the subset, but vectorization is preserved on the subset.
+    df['es_LD'] = mask_less
+    df['valor_num'] = float('nan')
+    
     if mask_less.any():
         clean_values = s_values.loc[mask_less].str.replace('<', '', regex=False)
-        # Convert to numeric, coerce errors to NaN just in case
         numeric_values = pd.to_numeric(clean_values, errors='coerce')
-        df.loc[mask_less, 'valor'] = numeric_values / 2.0
+        df.loc[mask_less, 'valor_num'] = numeric_values / 2.0
         
-    # 2. Handle values without '<'
-    # Convert original values to numeric directly
-    # We use to_numeric on the inverse mask
-    # Note: df.loc[~mask_less, 'valor'] might contain things that were already floats.
-    # pd.to_numeric handles them fine.
-    df.loc[~mask_less, 'valor'] = pd.to_numeric(df.loc[~mask_less, 'valor'], errors='coerce')
+    df.loc[~mask_less, 'valor_num'] = pd.to_numeric(df.loc[~mask_less, 'valor'], errors='coerce')
     
-    # Final cleanup: ensure the column is fully float
-    df['valor'] = pd.to_numeric(df['valor'], errors='coerce')
-    
-    # Drop rows where value is NaN (if that's the business rule from the original script)
-    # The original script did: df = df.dropna(subset=["valor"])
-    df = df.dropna(subset=['valor'])
+    df['valor_num'] = pd.to_numeric(df['valor_num'], errors='coerce')
+    df = df.dropna(subset=['valor_num'])
     
     # Create 'parametro_unidad'
     df['parametro_unidad'] = df['parametro'].astype(str) + " (" + df['unidad'].astype(str) + ")"
@@ -161,8 +135,8 @@ def calculate_reference_statistics(df, method='mean_plus_2std'):
     if df.empty:
         return None
         
-    mean_val = df['valor'].mean()
-    std_val = df['valor'].std(ddof=1) # Sample standard deviation
+    mean_val = df['valor_num'].mean()
+    std_val = df['valor_num'].std(ddof=1) # Sample standard deviation
     
     if method == 'mean_minus_2std':
         return mean_val - (2 * std_val)

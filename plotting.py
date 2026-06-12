@@ -44,13 +44,15 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     
     # Secuencias para Estaciones
     markers = [
-        'o', 's', 'D', '^', 'p',  # círculo, cuadrado, diamante, triángulo arriba, pentágono
-        'h', '*', 'v', '<', '>',  # hexágono, estrella, triángulo abajo, izquierda, derecha
-        'P', 'X', 'd', 'H', '8',  # cruz gruesa, X gruesa, diamante delgado, hexágono alternativo, octágono
-        '+', 'x', '1', '2', '3',  # cruz fina, x fina, trípodes (abajo, arriba, izquierda)
-        '4', '.', 'o', 's', 'D',  # trípode derecha, punto, y comenzamos a repetir formas
-        '^', 'p', 'h', '*', 'v', 
-        '<', '>', 'P'
+        ('o', True),  ('s', True),  ('D', True),  ('^', True),  ('p', True),  # Llenos
+        ('h', True),  ('*', True),  ('v', True),  ('<', True),  ('>', True), 
+        ('X', True),  ('d', True),  ('P', True),  ('H', True),  ('8', True),
+        
+        ('o', False), ('s', False), ('D', False), ('^', False), ('p', False), # Abiertos (transparentes)
+        ('h', False), ('*', False), ('v', False), ('<', False), ('>', False),
+        ('X', False), ('d', False), ('P', False), ('H', False), ('8', False),
+        
+        ('+', True),  ('x', True),  ('|', True)                               # Cruces y líneas
     ]
     colors = [
         '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 

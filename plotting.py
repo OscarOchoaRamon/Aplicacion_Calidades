@@ -37,7 +37,10 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     plt.rcParams['font.size'] = 9
     
     # NUEVO: Obligar al texto matemático a usar la fuente normal (Bookman Old Style)
-    plt.rcParams['mathtext.default'] = 'regular'
+    plt.rcParams['mathtext.fontset'] = 'custom'
+    plt.rcParams['mathtext.rm'] = 'Bookman Old Style'          # fuente normal en modo matemático
+    plt.rcParams['mathtext.it'] = 'Bookman Old Style:italic'   # cursiva (usada por \mathit)
+    plt.rcParams['mathtext.bf'] = 'Bookman Old Style:bold'     # negrita (usada por \mathbf)
     
     plt.rcParams['axes.edgecolor'] = 'black'        
     plt.rcParams['axes.linewidth'] = 1.0            

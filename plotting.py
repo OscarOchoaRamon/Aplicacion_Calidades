@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.font_manager as font_manager
-import matplotlib.ticker as ticker  # <-- NUEVA IMPORTACIÓN PARA EL EJE Y
+import matplotlib.ticker as ticker
 import pandas as pd
 import os
 
@@ -78,7 +78,6 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         
         if symbol_style == "varied":
             m_shape, is_filled = marker_configs[i % len(marker_configs)]
-            # Si is_filled es True, usa el color. Si es False, usa 'none' (transparente)
             mfc = c if is_filled else 'none'
             
             ax.plot(station_data['fecha'], station_data.get('valor_num', station_data['valor']),
@@ -168,11 +167,14 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             ax.axhline(y=val, color=color, linestyle=linestyle, alpha=alpha, label=label, linewidth=lw)
 
     # 3. Formato de Ejes
-    ax.set_ylabel(f"{parameter} ({unit})", fontweight='bold', fontsize=9)
+    # --- CONVERSIÓN DE SUBÍNDICES QUÍMICOS ---
+    # Reemplazamos "NO3" por el formato matemático de Matplotlib para hacer el 3 subíndice
+    display_parameter = parameter.replace("NO3", "NO$_3$")
+    
+    ax.set_ylabel(f"{display_parameter} ({unit})", fontweight='bold', fontsize=9)
     
     # --- FORMATO DEL EJE Y (Coma para decimales) ---
     def y_fmt(x, pos):
-        # Formatea el número (quitando notación científica y ceros extra) y reemplaza . por ,
         return f"{x:g}".replace('.', ',')
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(y_fmt))
     

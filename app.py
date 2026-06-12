@@ -240,7 +240,7 @@ def water_quality_module(module_type="surface"):
                     selected_legend_pos = st.sidebar.selectbox(
                         "Posición de la Leyenda",
                         options=list(legend_pos_options.keys()),
-                        index=0
+                        index=1  # <-- CAMBIADO A 1 PARA QUE EL DEFAULT SEA "Abajo"
                     )
                     
                     # Legend Font Size
@@ -307,11 +307,11 @@ def water_quality_module(module_type="surface"):
                     selected_symbol_label = st.sidebar.selectbox(
                         "Símbolos de Estaciones",
                         options=list(symbol_options.keys()),
-                        index=0
+                        index=1  # <-- CAMBIADO A 1 PARA QUE EL DEFAULT SEA "Variado"
                     )
                     selected_symbol_style = symbol_options[selected_symbol_label]
                     
-                    # Tamaño de los símbolos (Valor por defecto 3.0)
+                    # Tamaño de los símbolos
                     selected_symbol_size = st.sidebar.slider(
                         "Tamaño de los Símbolos",
                         min_value=1.0,

@@ -160,7 +160,9 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
 
     # 3. Formato de Ejes
     ax.set_ylabel(f"{parameter} ({unit})", fontweight='bold', fontsize=9)
-    ax.grid(False)
+    
+    # --- ACTIVACIÓN DE GRILLAS GRISES ---
+    ax.grid(True, which='both', axis='both', color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
     
     spanish_months = {1: 'Ene', 2: 'Feb', 3: 'Mar', 4: 'Abr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Ago', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dic'}
     def span_date_fmt(x, pos):
@@ -180,14 +182,3 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     
     # 4. LA LEYENDA
     if legend_position == "bottom":
-        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.25),
-                  ncol=legend_cols, fontsize=legend_size, frameon=False,
-                  labelspacing=0.2, handletextpad=0.3, columnspacing=0.8)
-    else: 
-        ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1),
-                  ncol=1, fontsize=legend_size, frameon=False,
-                  labelspacing=0.2, handletextpad=0.3)
-                  
-    plt.tight_layout()
-    
-    return fig

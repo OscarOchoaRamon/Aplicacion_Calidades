@@ -184,9 +184,19 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     else:
         ax.set_ylabel(f"{display_parameter} ({unit})", fontweight='bold', fontsize=9)
     
-    # --- FORMATO DEL EJE Y (Coma para decimales) ---
-    def y_fmt(x, pos):
-        return f"{x:g}".replace('.', ',')
+    # --- ESCALA LOGARÍTMICA Y FORMATO DEL EJE Y ---
+    if log_scale:
+        ax.set_yscale('log')
+        def y_fmt(x, pos):
+            if x >= 1000:
+                return f"{x:,.0f}".replace(',', '.')
+            elif x >= 1:
+                return f"{x:g}".replace('.', ',')
+            else:
+                return f"{x:.4g}".replace('.', ',')
+    else:
+        def y_fmt(x, pos):
+            return f"{x:g}".replace('.', ',')
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(y_fmt))
     
     # --- ACTIVACIÓN DE GRILLAS GRISES ---

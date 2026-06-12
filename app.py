@@ -393,18 +393,39 @@ def water_quality_module(module_type="surface"):
                         
                         if fig:
                             import io
-                            buf = io.BytesIO()
-                            fig.savefig(buf, format="png", dpi=300, bbox_inches='tight', pad_inches=0.1)
-                            buf.seek(0)
                             
-                            st.image(buf, caption=f"Gráfico Generado: {selected_param}", output_format="PNG")
+                            # Generar buffer PNG
+                            buf_png = io.BytesIO()
+                            fig.savefig(buf_png, format="png", dpi=300, bbox_inches='tight', pad_inches=0.1)
+                            buf_png.seek(0)
                             
-                            st.download_button(
-                                label="📸 Descargar Imagen (PNG)",
-                                data=buf.getvalue(),
-                                file_name=f"{selected_param}.png",
-                                mime="image/png"
-                            )
+                            # Generar buffer SVG
+                            buf_svg = io.BytesIO()
+                            fig.savefig(buf_svg, format="svg", bbox_inches='tight', pad_inches=0.1)
+                            buf_svg.seek(0)
+                            
+                            st.image(buf_png, caption=f"Gráfico Generado: {selected_param}", output_format="PNG")
+                            
+                            # Mostrar botones de descarga en columnas
+                            col_down1, col_down2 = st.columns(2)
+                            
+                            with col_down1:
+                                st.download_button(
+                                    label="📸 Descargar Imagen (PNG)",
+                                    data=buf_png.getvalue(),
+                                    file_name=f"{selected_param}.png",
+                                    mime="image/png",
+                                    use_container_width=True
+                                )
+                                
+                            with col_down2:
+                                st.download_button(
+                                    label="🖼️ Descargar Vector (SVG)",
+                                    data=buf_svg.getvalue(),
+                                    file_name=f"{selected_param}.svg",
+                                    mime="image/svg+xml",
+                                    use_container_width=True
+                                )
                         else:
                             st.warning("No hay datos para graficar con este parámetro.")
                             

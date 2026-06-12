@@ -173,7 +173,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     # --- CONVERSIÓN DE SUBÍNDICES MATEMÁTICO ---
     # Usamos $_3$ pero como forzamos 'mathtext.default' a 'regular', 
     # tomará el '3' de Bookman Old Style y lo hará subíndice manteniendo la negrita.
-    display_parameter = parameter.replace("NO3", "NO$_3$")
+    display_parameter = parameter.replace("NO3", "NO$_3$").replace("NO2", "NO$_2$").replace("DBO5", "DBO$_5$")
     
     ax.set_ylabel(f"{display_parameter} ({unit})", fontweight='bold', fontsize=9)
     

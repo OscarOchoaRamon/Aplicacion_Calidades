@@ -35,8 +35,6 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         plt.rcParams['font.serif'] = ['Bookman Old Style', 'Times New Roman', 'serif']
         
     plt.rcParams['font.size'] = 9
-    
-    # NUEVO: Obligar al texto matemático a usar la fuente normal (Bookman Old Style)
     plt.rcParams['mathtext.default'] = 'regular'
     
     plt.rcParams['axes.edgecolor'] = 'black'        
@@ -170,10 +168,9 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             ax.axhline(y=val, color=color, linestyle=linestyle, alpha=alpha, label=label, linewidth=lw)
 
     # 3. Formato de Ejes
-    # --- CONVERSIÓN DE SUBÍNDICES MATEMÁTICO ---
-    # Usamos $_3$ pero como forzamos 'mathtext.default' a 'regular', 
-    # tomará el '3' de Bookman Old Style y lo hará subíndice manteniendo la negrita.
-    display_parameter = parameter.replace("NO3", "NO$_3$")
+    # --- CONVERSIÓN DE SUBÍNDICES QUÍMICOS CON UNICODE ---
+    # Reemplazamos NO3 -> NO₃ y NO2- -> NO₂⁻
+    display_parameter = parameter.replace("NO3", "NO₃").replace("NO2-", "NO₂⁻")
     
     ax.set_ylabel(f"{display_parameter} ({unit})", fontweight='bold', fontsize=9)
     

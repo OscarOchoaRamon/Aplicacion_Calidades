@@ -190,8 +190,8 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         
     plt.xticks(rotation=date_angle)
     
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(True)
+    ax.spines['right'].set_visible(True)
     
     # 4. LA LEYENDA
     if legend_position == "bottom":

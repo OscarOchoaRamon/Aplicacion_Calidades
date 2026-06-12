@@ -189,7 +189,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         ax.set_yscale('log')
         def y_fmt(x, pos):
             if x >= 1000:
-                return f"{x:,.0f}".replace(',', '.')
+                return f"{x:.0f}"
             elif x >= 1:
                 return f"{x:g}".replace('.', ',')
             else:

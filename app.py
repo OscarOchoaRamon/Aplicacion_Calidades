@@ -320,6 +320,13 @@ def water_quality_module(module_type="surface"):
                         step=0.5,
                         help="Ajusta el tamaño de los puntos de las estaciones en el gráfico."
                     )
+
+                    #Escala logarítmica ---
+                    use_log_scale = st.sidebar.checkbox(
+                        "Escala logarítmica (Eje Y)",
+                        value=False,
+                        help="Aplica escala logarítmica al eje Y. Útil cuando los datos tienen rangos muy amplios."
+                    )
                     
                     # --- GENERAR TEXTO ---
                     if selected_param:
@@ -388,7 +395,8 @@ def water_quality_module(module_type="surface"):
                             legend_size=selected_legend_size,
                             legend_cols=selected_legend_cols,
                             symbol_size=selected_symbol_size,        
-                            legend_spacing=selected_legend_spacing   
+                            legend_spacing=selected_legend_spacing,
+                            log_scale=use_log_scale
                         )
                         
                         if fig:

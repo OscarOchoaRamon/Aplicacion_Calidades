@@ -44,13 +44,13 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     
     # Secuencias para Estaciones
     markers = [
-        'circle', 'square', 'diamond', 'triangle-up', 'pentagon', 
-        'hexagon', 'star', 'circle-open', 'square-open', 'diamond-open', 
-        'triangle-up-open', 'pentagon-open', 'hexagon-open', 'star-open', 'cross', 
-        'x', 'bowtie', 'hourglass', 'triangle-down', 'triangle-left', 
-        'triangle-right', 'triangle-down-open', 'triangle-left-open', 'triangle-right-open', 'cross-open', 
-        'hash', 'y-up', 'y-down', 'y-left', 'y-right', 
-        'octagon', 'octagon-open', 'hexagram'
+        'o', 's', 'D', '^', 'p',  # círculo, cuadrado, diamante, triángulo arriba, pentágono
+        'h', '*', 'v', '<', '>',  # hexágono, estrella, triángulo abajo, izquierda, derecha
+        'P', 'X', 'd', 'H', '8',  # cruz gruesa, X gruesa, diamante delgado, hexágono alternativo, octágono
+        '+', 'x', '1', '2', '3',  # cruz fina, x fina, trípodes (abajo, arriba, izquierda)
+        '4', '.', 'o', 's', 'D',  # trípode derecha, punto, y comenzamos a repetir formas
+        '^', 'p', 'h', '*', 'v', 
+        '<', '>', 'P'
     ]
     colors = [
         '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 

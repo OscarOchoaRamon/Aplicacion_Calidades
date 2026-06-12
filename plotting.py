@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.font_manager as font_manager
+import matplotlib.ticker as ticker  # <-- NUEVA IMPORTACIÓN PARA EL EJE Y
 import pandas as pd
 import os
 
@@ -17,8 +18,7 @@ for font_file in font_files:
         except Exception:
             pass
 
-# NUEVO: Parámetros symbol_size y legend_spacing añadidos a la función
-def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=7.0, legend_cols=5, symbol_size=5.5, legend_spacing=0.2):
+def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=7.0, legend_cols=5, symbol_size=3.0, legend_spacing=0.2):
     
     # Filtrar datos
     subset = df[df['parametro'] == parameter].copy()
@@ -81,13 +81,11 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             # Si is_filled es True, usa el color. Si es False, usa 'none' (transparente)
             mfc = c if is_filled else 'none'
             
-            # NUEVO: Reemplazado markersize=5.5 por markersize=symbol_size
             ax.plot(station_data['fecha'], station_data.get('valor_num', station_data['valor']),
                     marker=m_shape, linestyle='', color=c, 
                     markerfacecolor=mfc, markeredgecolor=c,
                     label=station, markersize=symbol_size)
         else:
-            # NUEVO: Reemplazado markersize=5.5 por markersize=symbol_size
             ax.plot(station_data['fecha'], station_data.get('valor_num', station_data['valor']),
                     marker='o', linestyle='', color=c, 
                     markerfacecolor=c, markeredgecolor=c,
@@ -172,6 +170,12 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     # 3. Formato de Ejes
     ax.set_ylabel(f"{parameter} ({unit})", fontweight='bold', fontsize=9)
     
+    # --- FORMATO DEL EJE Y (Coma para decimales) ---
+    def y_fmt(x, pos):
+        # Formatea el número (quitando notación científica y ceros extra) y reemplaza . por ,
+        return f"{x:g}".replace('.', ',')
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(y_fmt))
+    
     # --- ACTIVACIÓN DE GRILLAS GRISES ---
     ax.grid(True, which='both', axis='both', color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
     
@@ -197,7 +201,6 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     ax.spines['right'].set_visible(True)
     
     # 4. LA LEYENDA
-    # NUEVO: Reemplazado labelspacing=0.2 por labelspacing=legend_spacing
     if legend_position == "bottom":
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.25),
                   ncol=legend_cols, fontsize=legend_size, frameon=False,

@@ -253,7 +253,7 @@ def water_quality_module(module_type="surface"):
                         help="Ajusta el tamaño del texto de la leyenda en la gráfica."
                     )
                     
-                    # NUEVO: Separación de la Leyenda
+                    # Separación de la Leyenda
                     selected_legend_spacing = st.sidebar.slider(
                         "Separación de líneas en Leyenda",
                         min_value=0.0,
@@ -280,7 +280,7 @@ def water_quality_module(module_type="surface"):
                     selected_angle = st.sidebar.selectbox(
                         "Ángulo de Etiquetas (Fechas)",
                         options=angle_options,
-                        index=4 
+                        index=2  # El índice 2 corresponde a 45 grados
                     )
                     
                     # Date Format
@@ -311,12 +311,12 @@ def water_quality_module(module_type="surface"):
                     )
                     selected_symbol_style = symbol_options[selected_symbol_label]
                     
-                    # NUEVO: Tamaño de los símbolos
+                    # Tamaño de los símbolos (Valor por defecto 3.0)
                     selected_symbol_size = st.sidebar.slider(
                         "Tamaño de los Símbolos",
                         min_value=1.0,
                         max_value=15.0,
-                        value=5.5,
+                        value=3.0, 
                         step=0.5,
                         help="Ajusta el tamaño de los puntos de las estaciones en el gráfico."
                     )
@@ -387,8 +387,8 @@ def water_quality_module(module_type="surface"):
                             symbol_style=selected_symbol_style,
                             legend_size=selected_legend_size,
                             legend_cols=selected_legend_cols,
-                            symbol_size=selected_symbol_size,        # ENVIAMOS EL NUEVO PARÁMETRO
-                            legend_spacing=selected_legend_spacing   # ENVIAMOS EL NUEVO PARÁMETRO
+                            symbol_size=selected_symbol_size,        
+                            legend_spacing=selected_legend_spacing   
                         )
                         
                         if fig:

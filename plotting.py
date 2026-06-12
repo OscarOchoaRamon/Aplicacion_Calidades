@@ -69,8 +69,14 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         if pd.notna(val):
             ax.axhline(y=val, color='black', linestyle='--', alpha=0.5, label=col, linewidth=1)
 
-    # --- SUBÍNDICES (NUEVO: Incluye DBO5) ---
-    display_p = parameter.replace("NO3", "NO$_3$").replace("NO2", "NO$_2$").replace("DBO5", "DBO$_5$")
+    # --- FORMATO DE ETIQUETA (Subíndices y nomenclatura científica) ---
+    display_p = (parameter
+                 .replace("NO3", "NO$_3$")
+                 .replace("NO2", "NO$_2$")
+                 .replace("DBO5", "DBO$_5$")
+                 .replace("Escherichia Coli", "$\\mathbf{\\mathit{Escherichia\\ coli}}$")
+                 .replace("Escherichia coli", "$\\mathbf{\\mathit{Escherichia\\ coli}}$"))
+    
     ax.set_ylabel(f"{display_p} ({unit})", fontweight='bold', fontsize=9)
     
     def y_fmt(x, pos): return f"{x:g}".replace('.', ',')

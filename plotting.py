@@ -29,12 +29,13 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     subset['fecha'] = pd.to_datetime(subset['fecha'])
     unit = subset['unidad'].iloc[0] if 'unidad' in subset.columns else ""
     
-    # --- CONFIGURACIÓN GLOBAL DE FUENTES ---
+    # --- CONFIGURACIÓN GLOBAL ---
     plt.rcParams['font.family'] = custom_font_name
     if custom_font_name == 'serif':
         plt.rcParams['font.serif'] = ['Bookman Old Style', 'Times New Roman', 'serif']
         
     plt.rcParams['font.size'] = 9
+    # TRUCO MAESTRO: Forzar a que el motor matemático use la fuente normal del gráfico
     plt.rcParams['mathtext.default'] = 'regular'
     
     plt.rcParams['axes.edgecolor'] = 'black'        
@@ -168,9 +169,10 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             ax.axhline(y=val, color=color, linestyle=linestyle, alpha=alpha, label=label, linewidth=lw)
 
     # 3. Formato de Ejes
-    # --- CONVERSIÓN DE SUBÍNDICES QUÍMICOS CON UNICODE ---
-    # Reemplazamos NO3 -> NO₃ y NO2- -> NO₂⁻
-    display_parameter = parameter.replace("NO3", "NO₃").replace("NO2-", "NO₂⁻")
+    # --- CONVERSIÓN DE SUBÍNDICES QUÍMICOS (Motor Matemático) ---
+    # NO3 -> NO$_3$ | NO2- -> NO$_2^-$
+    # Al tener mathtext.default = 'regular', usará Bookman Old Style y negrita.
+    display_parameter = parameter.replace("NO3", "NO$_3$").replace("NO2-", "NO$_2^-$")
     
     ax.set_ylabel(f"{display_parameter} ({unit})", fontweight='bold', fontsize=9)
     
@@ -199,9 +201,6 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         ax.xaxis.set_major_locator(plt.MaxNLocator(8)) 
         
     plt.xticks(rotation=date_angle)
-    
-    ax.spines['top'].set_visible(True)
-    ax.spines['right'].set_visible(True)
     
     # 4. LA LEYENDA
     if legend_position == "bottom":

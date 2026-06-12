@@ -33,7 +33,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         plt.rcParams['font.serif'] = ['Bookman Old Style', 'Times New Roman', 'serif']
         
     plt.rcParams['font.size'] = 9
-    plt.rcParams['mathtext.default'] = 'regular' # Truco para fuentes en subíndices
+    plt.rcParams['mathtext.default'] = 'regular' 
     plt.rcParams['axes.edgecolor'] = 'black'
     plt.rcParams['axes.linewidth'] = 1.0
     plt.rcParams['axes.spines.top'] = True
@@ -69,13 +69,9 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         if pd.notna(val):
             ax.axhline(y=val, color='black', linestyle='--', alpha=0.5, label=col, linewidth=1)
 
-    # --- FORMATO DE ETIQUETA (Subíndices y nomenclatura científica) ---
-    display_p = (parameter
-                 .replace("NO3", "NO$_3$")
-                 .replace("NO2", "NO$_2$")
-                 .replace("DBO5", "DBO$_5$")
-                 .replace("Escherichia Coli", "$\\mathbf{\\mathit{Escherichia\\ coli}}$")
-                 .replace("Escherichia coli", "$\\mathbf{\\mathit{Escherichia\\ coli}}$"))
+    # --- SUBÍNDICES Y FORMATO CIENTÍFICO ---
+    # Convertimos los nombres de parámetros químicos y el nombre científico
+    display_p = parameter.replace("NO3", "NO$_3$").replace("NO2", "NO$_2$").replace("DBO5", "DBO$_5$").replace("Escherichia coli", "$\mathit{\mathbf{Escherichia\ coli}}$")
     
     ax.set_ylabel(f"{display_p} ({unit})", fontweight='bold', fontsize=9)
     

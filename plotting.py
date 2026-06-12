@@ -21,7 +21,8 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     
     # Filtrar datos
     subset = df[df['parametro'] == parameter].copy()
-    if subset.empty: return None
+    if subset.empty:
+        return None
     
     # Asegurar que 'fecha' sea formato datetime
     subset['fecha'] = pd.to_datetime(subset['fecha'])
@@ -39,17 +40,17 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     fig, ax = plt.subplots(figsize=(15.5 / 2.54, 8 / 2.54))
     
     # --- DICCIONARIO DE FORMAS Y COLORES ---
-    # Combinamos la forma (ej: 'o') con un valor booleano: True = Lleno, False = Abierto
+    # Combinamos la forma con un booleano: True = Lleno, False = Abierto
     marker_configs = [
-        ('o', True),  ('s', True),  ('D', True),  ('^', True),  ('p', True),  # Llenos
+        ('o', True),  ('s', True),  ('D', True),  ('^', True),  ('p', True),
         ('h', True),  ('*', True),  ('v', True),  ('<', True),  ('>', True), 
         ('X', True),  ('d', True),  ('P', True),  ('H', True),  ('8', True),
         
-        ('o', False), ('s', False), ('D', False), ('^', False), ('p', False), # Abiertos (transparentes)
+        ('o', False), ('s', False), ('D', False), ('^', False), ('p', False),
         ('h', False), ('*', False), ('v', False), ('<', False), ('>', False),
         ('X', False), ('d', False), ('P', False), ('H', False), ('8', False),
         
-        ('+', True),  ('x', True),  ('|', True),  ('_', True),  ('1', True),  # Cruces y líneas
+        ('+', True),  ('x', True),  ('|', True),  ('_', True),  ('1', True),
         ('2', True),  ('3', True),  ('4', True)
     ]
     
@@ -76,7 +77,7 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             
             ax.plot(station_data['fecha'], station_data.get('valor_num', station_data['valor']),
                     marker=m_shape, linestyle='', color=c, 
-                    markerfacecolor=mfc, markeredgecolor=c, # Esto permite los marcadores abiertos
+                    markerfacecolor=mfc, markeredgecolor=c,
                     label=station, markersize=5.5)
         else:
             ax.plot(station_data['fecha'], station_data.get('valor_num', station_data['valor']),
@@ -105,7 +106,8 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             year, cat_raw = parts[1], "_".join(parts[2:])
             reg_body = f"ECA-{year[-2:]}" if single_line else f"ECA-{year}"
             suffix_desc = " costa y sierra" if cat_raw.endswith("_cys") else (" selva" if cat_raw.endswith("_s") else (" estuario" if cat_raw.endswith("_e") else (" mar" if cat_raw.endswith("_m") else "")))
-            for suffix in ["_cys", "_s", "_e", "_m"]: cat_raw = cat_raw.replace(suffix, "")
+            for suffix in ["_cys", "_s", "_e", "_m"]:
+                cat_raw = cat_raw.replace(suffix, "")
             
             if len(cat_raw) >= 3 and cat_raw[0].isdigit():
                 code = f"{cat_raw[0]}-{cat_raw[1:].upper()}"
@@ -144,7 +146,8 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
                 color, linestyle, alpha = 'red', ('-' if 'lim_inf' in col_lower else '--'), (0.5 if 'lim_inf' in col_lower else 1.0)
             elif 'lga' in col_lower or 'eca_2008' in col_lower or 'eca_2015' in col_lower:
                 color, linestyle = 'green', (':' if 'lim_inf' in col_lower else '-.')
-                if 'eca_2015_3d2' in col_lower: color = 'blue'
+                if 'eca_2015_3d2' in col_lower:
+                    color = 'blue'
             elif 'nmp_minero' in col_lower:
                 color, linestyle = 'purple', ('-.' if 'lim_inf' in col_lower else ':')
             elif 'lmp_2010' in col_lower:
@@ -165,11 +168,16 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     ax.grid(True, which='both', axis='both', color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
     
     spanish_months = {1: 'Ene', 2: 'Feb', 3: 'Mar', 4: 'Abr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Ago', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dic'}
+    
     def span_date_fmt(x, pos):
         dt = mdates.num2date(x)
-        return f"{dt.day}-{spanish_months[dt.month]}-{str(dt.year)[-2:]}" if date_format == "DD-MM-YY" else f"{spanish_months[dt.month]}-{str(dt.year)[-2:]}"
+        if date_format == "DD-MM-YY":
+            return f"{dt.day}-{spanish_months[dt.month]}-{str(dt.year)[-2:]}"
+        else:
+            return f"{spanish_months[dt.month]}-{str(dt.year)[-2:]}"
     
     ax.xaxis.set_major_formatter(plt.FuncFormatter(span_date_fmt))
+    
     if x_label_count > 0:
         ax.xaxis.set_major_locator(plt.MaxNLocator(x_label_count))
     else:
@@ -182,3 +190,14 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     
     # 4. LA LEYENDA
     if legend_position == "bottom":
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.25),
+                  ncol=legend_cols, fontsize=legend_size, frameon=False,
+                  labelspacing=0.2, handletextpad=0.3, columnspacing=0.8)
+    else: 
+        ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1),
+                  ncol=1, fontsize=legend_size, frameon=False,
+                  labelspacing=0.2, handletextpad=0.3)
+                  
+    plt.tight_layout()
+    
+    return fig

@@ -207,7 +207,6 @@ def water_quality_module(module_type="surface"):
                             else:
                                 defaults = standard_names
 
-                            # Fallback if filter found nothing
                             if not defaults: 
                                 defaults = standard_names
 
@@ -217,7 +216,6 @@ def water_quality_module(module_type="surface"):
                                 default=defaults
                             )
                             
-                            # Flatten the selection back to a list of columns
                             selected_cols = []
                             for std in selected_standards:
                                 selected_cols.extend(reg_groups[std])
@@ -225,7 +223,6 @@ def water_quality_module(module_type="surface"):
                             selected_cols = None
                             st.sidebar.info("No se encontraron normativas en el archivo.")
                     else:
-                        # For Groundwater, filter based on user selection
                         selected_cols = []
                         if "Promedio + 2 Desviaciones Estándar" in gw_ref_options:
                             selected_cols.append('lim_referencia_gw_sup')
@@ -254,6 +251,16 @@ def water_quality_module(module_type="surface"):
                         value=7.0,
                         step=0.5,
                         help="Ajusta el tamaño del texto de la leyenda en la gráfica."
+                    )
+                    
+                    # NUEVO: Separación de la Leyenda
+                    selected_legend_spacing = st.sidebar.slider(
+                        "Separación de líneas en Leyenda",
+                        min_value=0.0,
+                        max_value=1.5,
+                        value=0.2,
+                        step=0.1,
+                        help="Controla el espacio vertical entre las líneas de la leyenda (0.2 es muy compacto)."
                     )
                     
                     # Columnas de Leyenda (Solo visible si la leyenda está abajo)
@@ -303,6 +310,16 @@ def water_quality_module(module_type="surface"):
                         index=0
                     )
                     selected_symbol_style = symbol_options[selected_symbol_label]
+                    
+                    # NUEVO: Tamaño de los símbolos
+                    selected_symbol_size = st.sidebar.slider(
+                        "Tamaño de los Símbolos",
+                        min_value=1.0,
+                        max_value=15.0,
+                        value=5.5,
+                        step=0.5,
+                        help="Ajusta el tamaño de los puntos de las estaciones en el gráfico."
+                    )
                     
                     # --- GENERAR TEXTO ---
                     if selected_param:
@@ -369,20 +386,19 @@ def water_quality_module(module_type="surface"):
                             legend_position=legend_pos_options[selected_legend_pos],
                             symbol_style=selected_symbol_style,
                             legend_size=selected_legend_size,
-                            legend_cols=selected_legend_cols
+                            legend_cols=selected_legend_cols,
+                            symbol_size=selected_symbol_size,        # ENVIAMOS EL NUEVO PARÁMETRO
+                            legend_spacing=selected_legend_spacing   # ENVIAMOS EL NUEVO PARÁMETRO
                         )
                         
                         if fig:
                             import io
-                            # Guardar la figura de Matplotlib en memoria
                             buf = io.BytesIO()
                             fig.savefig(buf, format="png", dpi=300, bbox_inches='tight', pad_inches=0.1)
                             buf.seek(0)
                             
-                            # Mostrar en Streamlit
                             st.image(buf, caption=f"Gráfico Generado: {selected_param}", output_format="PNG")
                             
-                            # Botón de Descarga
                             st.download_button(
                                 label="📸 Descargar Imagen (PNG)",
                                 data=buf.getvalue(),

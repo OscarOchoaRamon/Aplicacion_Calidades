@@ -17,7 +17,8 @@ for font_file in font_files:
         except Exception:
             pass
 
-def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=7.0, legend_cols=5):
+# NUEVO: Parámetros symbol_size y legend_spacing añadidos a la función
+def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=7.0, legend_cols=5, symbol_size=5.5, legend_spacing=0.2):
     
     # Filtrar datos
     subset = df[df['parametro'] == parameter].copy()
@@ -80,15 +81,17 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             # Si is_filled es True, usa el color. Si es False, usa 'none' (transparente)
             mfc = c if is_filled else 'none'
             
+            # NUEVO: Reemplazado markersize=5.5 por markersize=symbol_size
             ax.plot(station_data['fecha'], station_data.get('valor_num', station_data['valor']),
                     marker=m_shape, linestyle='', color=c, 
                     markerfacecolor=mfc, markeredgecolor=c,
-                    label=station, markersize=5.5)
+                    label=station, markersize=symbol_size)
         else:
+            # NUEVO: Reemplazado markersize=5.5 por markersize=symbol_size
             ax.plot(station_data['fecha'], station_data.get('valor_num', station_data['valor']),
                     marker='o', linestyle='', color=c, 
                     markerfacecolor=c, markeredgecolor=c,
-                    label=station, markersize=5.5)
+                    label=station, markersize=symbol_size)
 
     # 2. Trazar Líneas de Normativa
     limit_cols = [col for col in df.columns if col.startswith('lim_') or col.startswith('ISQG') or col.startswith('PEL')]
@@ -194,14 +197,15 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     ax.spines['right'].set_visible(True)
     
     # 4. LA LEYENDA
+    # NUEVO: Reemplazado labelspacing=0.2 por labelspacing=legend_spacing
     if legend_position == "bottom":
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.25),
                   ncol=legend_cols, fontsize=legend_size, frameon=False,
-                  labelspacing=0.2, handletextpad=0.3, columnspacing=0.8)
+                  labelspacing=legend_spacing, handletextpad=0.3, columnspacing=0.8)
     else: 
         ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1),
                   ncol=1, fontsize=legend_size, frameon=False,
-                  labelspacing=0.2, handletextpad=0.3)
+                  labelspacing=legend_spacing, handletextpad=0.3)
                   
     plt.tight_layout()
     

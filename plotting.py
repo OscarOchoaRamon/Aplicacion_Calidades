@@ -43,8 +43,24 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     fig, ax = plt.subplots(figsize=(15.5 / 2.54, 8 / 2.54))
     
     # Secuencias para Estaciones
-    markers = ['o', 's', 'D', '^', 'p', 'h', '*', 'v', '<', '>', 'X', 'd']
-    colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff']
+    markers = [
+        'circle', 'square', 'diamond', 'triangle-up', 'pentagon', 
+        'hexagon', 'star', 'circle-open', 'square-open', 'diamond-open', 
+        'triangle-up-open', 'pentagon-open', 'hexagon-open', 'star-open', 'cross', 
+        'x', 'bowtie', 'hourglass', 'triangle-down', 'triangle-left', 
+        'triangle-right', 'triangle-down-open', 'triangle-left-open', 'triangle-right-open', 'cross-open', 
+        'hash', 'y-up', 'y-down', 'y-left', 'y-right', 
+        'octagon', 'octagon-open', 'hexagram'
+    ]
+    colors = [
+        '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 
+        '#911eb4', '#42d4f4', '#f032e6', '#7fff00', '#fabed4', 
+        '#469990', '#dcbeff', '#9a6324', '#4b0082', '#800000', 
+        '#aaffc3', '#808000', '#ffd8b1', '#000075', '#a9a9a9', 
+        '#333333', '#ffd700', '#ff7f50', '#87ceeb', '#a87858', 
+        '#ff69b4', '#dda0dd', '#40e0d0', '#d2691e', '#4682b4', 
+        '#7fff00', '#4b0082', '#04bbfc'
+    ]
     
     # 1. Trazar las Estaciones
     stations = subset['estacion'].unique()

@@ -200,7 +200,11 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(y_fmt))
     
     # --- ACTIVACIÓN DE GRILLAS GRISES ---
-    ax.grid(True, which='both', axis='both', color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
+    if log_scale:
+        ax.grid(True, which='major', axis='both', color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
+        ax.minorticks_off()
+    else:
+        ax.grid(True, which='both', axis='both', color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
     
     spanish_months = {1: 'Ene', 2: 'Feb', 3: 'Mar', 4: 'Abr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Ago', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dic'}
     

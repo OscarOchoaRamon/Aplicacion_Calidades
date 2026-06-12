@@ -5,16 +5,13 @@ import pandas as pd
 import os
 
 # --- REGISTRO DIRECTO DE FUENTES PARA MATPLOTLIB ---
-# Obligamos a Matplotlib a cargar los archivos locales en su memoria interna
 font_files = ["BOOKOS.TTF", "BOOKOSB.TTF", "BOOKOSI.TTF", "BOOKOSBI.TTF", "BookmanOldStyle.ttf"]
-custom_font_name = 'serif' # Fallback por defecto
+custom_font_name = 'serif' 
 
 for font_file in font_files:
     if os.path.exists(font_file):
         try:
-            # Añadimos la fuente al gestor de Matplotlib
             font_manager.fontManager.addfont(font_file)
-            # Extraemos el nombre exacto con el que Matplotlib la registra internamente
             prop = font_manager.FontProperties(fname=font_file)
             custom_font_name = prop.get_name()
         except Exception:
@@ -26,24 +23,24 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     subset = df[df['parametro'] == parameter].copy()
     if subset.empty: return None
     
-    # Asegurar que 'fecha' sea formato datetime para Matplotlib
+    # Asegurar que 'fecha' sea formato datetime
     subset['fecha'] = pd.to_datetime(subset['fecha'])
     unit = subset['unidad'].iloc[0] if 'unidad' in subset.columns else ""
     
     # --- CONFIGURACIÓN GLOBAL DE FUENTES ---
     plt.rcParams['font.family'] = custom_font_name
     if custom_font_name == 'serif':
-        # Fallback de emergencia por si no encuentra el archivo TTF
         plt.rcParams['font.serif'] = ['Bookman Old Style', 'Times New Roman', 'serif']
         
     plt.rcParams['font.size'] = 9
     plt.rcParams['axes.linewidth'] = 1
     
-    # Crear Figura con tamaño exacto: 15.5 cm x 8 cm
+    # Crear Figura
     fig, ax = plt.subplots(figsize=(15.5 / 2.54, 8 / 2.54))
     
-    # Secuencias para Estaciones
-    markers = [
+    # --- DICCIONARIO DE FORMAS Y COLORES ---
+    # Combinamos la forma (ej: 'o') con un valor booleano: True = Lleno, False = Abierto
+    marker_configs = [
         ('o', True),  ('s', True),  ('D', True),  ('^', True),  ('p', True),  # Llenos
         ('h', True),  ('*', True),  ('v', True),  ('<', True),  ('>', True), 
         ('X', True),  ('d', True),  ('P', True),  ('H', True),  ('8', True),
@@ -52,8 +49,10 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         ('h', False), ('*', False), ('v', False), ('<', False), ('>', False),
         ('X', False), ('d', False), ('P', False), ('H', False), ('8', False),
         
-        ('+', True),  ('x', True),  ('|', True)                               # Cruces y líneas
+        ('+', True),  ('x', True),  ('|', True),  ('_', True),  ('1', True),  # Cruces y líneas
+        ('2', True),  ('3', True),  ('4', True)
     ]
+    
     colors = [
         '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 
         '#911eb4', '#42d4f4', '#f032e6', '#7fff00', '#fabed4', 
@@ -68,11 +67,22 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     stations = subset['estacion'].unique()
     for i, station in enumerate(stations):
         station_data = subset[subset['estacion'] == station]
-        m = markers[i % len(markers)] if symbol_style == "varied" else 'o'
         c = colors[i % len(colors)]
         
-        ax.plot(station_data['fecha'], station_data.get('valor_num', station_data['valor']),
-                marker=m, linestyle='', color=c, label=station, markersize=5)
+        if symbol_style == "varied":
+            m_shape, is_filled = marker_configs[i % len(marker_configs)]
+            # Si is_filled es True, usa el color. Si es False, usa 'none' (transparente)
+            mfc = c if is_filled else 'none'
+            
+            ax.plot(station_data['fecha'], station_data.get('valor_num', station_data['valor']),
+                    marker=m_shape, linestyle='', color=c, 
+                    markerfacecolor=mfc, markeredgecolor=c, # Esto permite los marcadores abiertos
+                    label=station, markersize=5.5)
+        else:
+            ax.plot(station_data['fecha'], station_data.get('valor_num', station_data['valor']),
+                    marker='o', linestyle='', color=c, 
+                    markerfacecolor=c, markeredgecolor=c,
+                    label=station, markersize=5.5)
 
     # 2. Trazar Líneas de Normativa
     limit_cols = [col for col in df.columns if col.startswith('lim_') or col.startswith('ISQG') or col.startswith('PEL')]
@@ -152,7 +162,6 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     ax.set_ylabel(f"{parameter} ({unit})", fontweight='bold', fontsize=9)
     ax.grid(False)
     
-    # Formateador de Fechas en Español
     spanish_months = {1: 'Ene', 2: 'Feb', 3: 'Mar', 4: 'Abr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Ago', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dic'}
     def span_date_fmt(x, pos):
         dt = mdates.num2date(x)

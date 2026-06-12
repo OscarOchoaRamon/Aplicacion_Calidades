@@ -46,7 +46,6 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
     fig, ax = plt.subplots(figsize=(15.5 / 2.54, 8 / 2.54))
     
     # --- DICCIONARIO DE FORMAS Y COLORES ---
-    # Combinamos la forma con un booleano: True = Lleno, False = Abierto
     marker_configs = [
         ('o', True),  ('s', True),  ('D', True),  ('^', True),  ('p', True),
         ('h', True),  ('*', True),  ('v', True),  ('<', True),  ('>', True), 
@@ -167,9 +166,10 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             ax.axhline(y=val, color=color, linestyle=linestyle, alpha=alpha, label=label, linewidth=lw)
 
     # 3. Formato de Ejes
-    # --- CONVERSIÓN DE SUBÍNDICES QUÍMICOS ---
-    # Reemplazamos "NO3" por el formato matemático de Matplotlib para hacer el 3 subíndice
-    display_parameter = parameter.replace("NO3", "NO$_3$")
+    # --- CONVERSIÓN DE SUBÍNDICES QUÍMICOS CON UNICODE ---
+    # Utilizamos el carácter Unicode del subíndice 3 (₃) en lugar de formato matemático
+    # Así se respeta la fuente Bookman Old Style y la negrita.
+    display_parameter = parameter.replace("NO3", "NO₃")
     
     ax.set_ylabel(f"{display_parameter} ({unit})", fontweight='bold', fontsize=9)
     

@@ -35,12 +35,16 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         plt.rcParams['font.serif'] = ['Bookman Old Style', 'Times New Roman', 'serif']
         
     plt.rcParams['font.size'] = 9
-    plt.rcParams['axes.edgecolor'] = 'black'        # Color del recuadro
-    plt.rcParams['axes.linewidth'] = 1.0            # Grosor del recuadro
-    plt.rcParams['axes.spines.top'] = True          # Activar borde superior
-    plt.rcParams['axes.spines.right'] = True        # Activar borde derecho
-    plt.rcParams['axes.spines.bottom'] = True       # Activar borde inferior
-    plt.rcParams['axes.spines.left'] = True         # Activar borde izquierdo
+    
+    # NUEVO: Obligar al texto matemático a usar la fuente normal (Bookman Old Style)
+    plt.rcParams['mathtext.default'] = 'regular'
+    
+    plt.rcParams['axes.edgecolor'] = 'black'        
+    plt.rcParams['axes.linewidth'] = 1.0            
+    plt.rcParams['axes.spines.top'] = True          
+    plt.rcParams['axes.spines.right'] = True        
+    plt.rcParams['axes.spines.bottom'] = True       
+    plt.rcParams['axes.spines.left'] = True         
     
     # Crear Figura
     fig, ax = plt.subplots(figsize=(15.5 / 2.54, 8 / 2.54))
@@ -166,10 +170,10 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             ax.axhline(y=val, color=color, linestyle=linestyle, alpha=alpha, label=label, linewidth=lw)
 
     # 3. Formato de Ejes
-    # --- CONVERSIÓN DE SUBÍNDICES QUÍMICOS CON UNICODE ---
-    # Utilizamos el carácter Unicode del subíndice 3 (₃) en lugar de formato matemático
-    # Así se respeta la fuente Bookman Old Style y la negrita.
-    display_parameter = parameter.replace("NO3", "NO₃")
+    # --- CONVERSIÓN DE SUBÍNDICES MATEMÁTICO ---
+    # Usamos $_3$ pero como forzamos 'mathtext.default' a 'regular', 
+    # tomará el '3' de Bookman Old Style y lo hará subíndice manteniendo la negrita.
+    display_parameter = parameter.replace("NO3", "NO$_3$")
     
     ax.set_ylabel(f"{display_parameter} ({unit})", fontweight='bold', fontsize=9)
     

@@ -34,7 +34,12 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
         plt.rcParams['font.serif'] = ['Bookman Old Style', 'Times New Roman', 'serif']
         
     plt.rcParams['font.size'] = 9
-    plt.rcParams['axes.linewidth'] = 1
+    plt.rcParams['axes.edgecolor'] = 'black'        # Color del recuadro
+    plt.rcParams['axes.linewidth'] = 1.0            # Grosor del recuadro
+    plt.rcParams['axes.spines.top'] = True          # Activar borde superior
+    plt.rcParams['axes.spines.right'] = True        # Activar borde derecho
+    plt.rcParams['axes.spines.bottom'] = True       # Activar borde inferior
+    plt.rcParams['axes.spines.left'] = True         # Activar borde izquierdo
     
     # Crear Figura
     fig, ax = plt.subplots(figsize=(15.5 / 2.54, 8 / 2.54))

@@ -135,6 +135,22 @@ def water_quality_module(module_type="surface"):
     La aplicación detectará automáticamente los valores y las líneas de referencia.
     """)
     
+    # --- Botón de descarga de plantilla ---
+    # Verifica si la plantilla existe en el repositorio/servidor antes de mostrar el botón
+    if os.path.exists(default_file):
+        with open(default_file, "rb") as file:
+            st.download_button(
+                label=f"📥 Descargar plantilla Excel ({success_msg_prefix})",
+                data=file,
+                file_name=default_file,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                help="Descarga este molde, llénalo con tus datos de monitoreo y súbelo en el recuadro de abajo."
+            )
+    else:
+        # Mensaje de seguridad en caso de que el archivo no se haya subido a Github
+        st.warning(f"⚠️ El archivo de plantilla '{default_file}' no se encuentra disponible en el servidor en este momento.")
+    # ---------------------------------------------
+    
     # File Uploader
     uploaded_file = st.file_uploader("Cargar archivo Excel (.xlsx)", type=["xlsx"], key=f"uploader_{module_type}")
     

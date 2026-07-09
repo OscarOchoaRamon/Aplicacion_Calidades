@@ -18,7 +18,7 @@ for font_file in font_files:
         except Exception:
             pass
 
-def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=7.0, legend_cols=5, symbol_size=3.0, legend_spacing=0.2, log_scale=False, custom_otros_name="Otros"):
+def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_format="MM-YY", x_label_count=0, legend_position="right", symbol_style="circle", legend_size=7.0, legend_cols=5, symbol_size=3.0, legend_spacing=0.2, log_scale=False, custom_otros_name="Otros", custom_line_styles=None):
     
     # Filtrar datos
     subset = df[df['parametro'] == parameter].copy()
@@ -177,6 +177,12 @@ def create_chart(df, parameter, selected_columns=None, date_angle=-90, date_form
             # NUEVO ESTILO PARA OTROS (Naranja oscuro)
             elif 'otros' in col_lower:
                 color, linestyle = 'darkorange', ('-' if 'lim_inf' in col_lower else '--')
+
+            # --- NUEVA LÓGICA: SOBRESCRIBIR SI EL USUARIO ELIGIÓ UN COLOR/ESTILO ---
+            if custom_line_styles is not None and col in custom_line_styles:
+                color = custom_line_styles[col]['color']
+                linestyle = custom_line_styles[col]['linestyle']
+            # -----------------------------------------------------------------------
 
             ax.axhline(y=val, color=color, linestyle=linestyle, alpha=alpha, label=label, linewidth=lw)
 

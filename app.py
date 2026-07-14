@@ -1,3 +1,5 @@
+import io
+import zipfile
 import streamlit as st
 
 from processing import load_data, clean_data, merge_data, get_regulation_groups, calculate_reference_statistics
@@ -76,6 +78,119 @@ def landing_page():
         if st.button("⛰️ Sedimentos", use_container_width=True):
             navigate_to('sediments')
             st.rerun()
+
+def generar_paquete_descarga_total(
+    df_final, 
+    module_type, 
+    format_imagen="png", 
+    selected_standards=None, 
+    gw_ref_options=None, 
+    custom_otros_name="Otros",
+    # --- NUEVOS: Parámetros estéticos recibidos desde la interfaz ---
+    date_angle=45,
+    date_format="MM-YY",
+    x_label_count=0,
+    legend_position="bottom",
+    symbol_style="varied",
+    legend_size=7.0,
+    legend_cols=5,
+    symbol_size=3.0,
+    legend_spacing=0.2,
+    log_scale=False,
+    custom_line_styles=None
+):
+    """
+    Genera un archivo ZIP en memoria que contiene todas las gráficas y interpretaciones,
+    respetando exactamente la configuración estética seleccionada por el usuario en la app.
+    """
+    zip_buffer = io.BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+        textos_totales = []
+        parametros = df_final['parametro'].unique()
+        
+        for param in parametros:
+            # 1. GENERACIÓN DEL TEXTO
+            param_group = df_final[df_final['parametro'] == param]
+            texto_generado = ""
+            try:
+                if module_type == "surface":
+                    texto_generado = text_generation.generar_texto_superficial(
+                        param_group, selected_standards, custom_otros_name
+                    )
+                elif module_type == "effluents":
+                    texto_generado = text_generation.generar_texto_efluentes(
+                        param_group, selected_standards
+                    )
+                elif module_type == "sediments":
+                    texto_generado = text_generation.generar_texto_sedimentos(
+                        param_group, selected_standards
+                    )
+                elif module_type == "groundwater":
+                    calc_alto = "Promedio + 2 Desviaciones Estándar" in gw_ref_options
+                    calc_bajo = "Promedio - 2 Desviaciones Estándar" in gw_ref_options
+                    texto_generado = text_generation.generar_texto_subterranea(
+                        param_group, calc_ref_alto=calc_alto, calc_ref_bajo=calc_bajo
+                    )
+                
+                textos_totales.append(f"### {param.upper()}\n{texto_generado}\n\n")
+            except Exception as e:
+                textos_totales.append(f"### {param.upper()}\nError al generar texto: {e}\n\n")
+
+            # 2. GENERACIÓN DE LA GRÁFICA CON ESTILO CORRECTO
+            try:
+                selected_cols = []
+                if module_type == "groundwater":
+                    if gw_ref_options:
+                        if "Promedio + 2 Desviaciones Estándar" in gw_ref_options:
+                            selected_cols.append('lim_referencia_gw_sup')
+                        if "Promedio - 2 Desviaciones Estándar" in gw_ref_options:
+                            selected_cols.append('lim_referencia_gw_inf')
+                else:
+                    reg_groups = get_regulation_groups(df_final)
+                    if selected_standards:
+                        for std in selected_standards:
+                            if std in reg_groups:
+                                selected_cols.extend(reg_groups[std])
+                
+                # Llamamos a create_chart enviándole exactamente las variables configuradas
+                fig = create_chart(
+                    df_final, 
+                    param, 
+                    selected_columns=selected_cols,
+                    date_angle=date_angle,
+                    date_format=date_format,
+                    x_label_count=x_label_count,
+                    legend_position=legend_position,
+                    symbol_style=symbol_style,
+                    legend_size=legend_size,
+                    legend_cols=legend_cols,
+                    symbol_size=symbol_size,        
+                    legend_spacing=legend_spacing,
+                    log_scale=log_scale,
+                    custom_otros_name=custom_otros_name,
+                    custom_line_styles=custom_line_styles
+                )
+                
+                if fig:
+                    img_buffer = io.BytesIO()
+                    fig.savefig(img_buffer, format=format_imagen, dpi=300, bbox_inches='tight', pad_inches=0.1)
+                    img_buffer.seek(0)
+                    
+                    filename = f"graficos/{param}.{format_imagen}"
+                    zip_file.writestr(filename, img_buffer.getvalue())
+                    
+                    import matplotlib.pyplot as plt
+                    plt.close(fig) # Liberar memoria
+            except Exception as e:
+                pass
+
+        # 3. AGREGAR EL ARCHIVO TXT
+        texto_final_acumulado = "".join(textos_totales)
+        zip_file.writestr("interpretaciones.txt", texto_final_acumulado.encode("utf-8"))
+
+    zip_buffer.seek(0)
+    return zip_buffer.getvalue()
 
 def water_quality_module(module_type="surface"):
     """
@@ -407,7 +522,61 @@ def water_quality_module(module_type="surface"):
                         value=False,
                         help="Aplica escala logarítmica al eje Y. Útil cuando los datos tienen rangos muy amplios."
                     )
-                    
+
+                    # --- NUEVA SECCIÓN DE DESCARGA TOTAL (PROCESAMIENTO BAJO DEMANDA) ---
+                    st.sidebar.markdown("---")
+                    st.sidebar.subheader("📥 Descarga Masiva")
+                    with st.sidebar.expander("Descargar Todo el Reporte"):
+                        formato_img = st.sidebar.radio("Formato de las imágenes:", ["PNG", "SVG"], index=0, key="radio_masivo")
+                        
+                        # Inicializamos variables en el estado de la sesión para controlar la descarga
+                        if "zip_descargable" not in st.session_state:
+                            st.session_state["zip_descargable"] = None
+                        if "modulo_procesado" not in st.session_state:
+                            st.session_state["modulo_procesado"] = None
+
+                        # Botón que actúa como disparador del procesamiento pesado
+                        if st.button("🔄 Procesar y Generar Reportes", use_container_width=True, help="Haz clic aquí para preparar todas las gráficas con la configuración actual."):
+                            with st.spinner("Generando gráficas e informes... Por favor, espera."):
+                                # Ejecutamos la función pesada SOLO ahora que se hizo clic
+                                st.session_state["zip_descargable"] = generar_paquete_descarga_total(
+                                    df_final=df_final,
+                                    module_type=module_type,
+                                    format_imagen=formato_img.lower(),
+                                    selected_standards=selected_standards if 'selected_standards' in locals() else None,
+                                    gw_ref_options=gw_ref_options if 'gw_ref_options' in locals() else None,
+                                    custom_otros_name=custom_otros_name if 'custom_otros_name' in locals() else "Otros",
+                                    date_angle=selected_angle,
+                                    date_format=selected_date_format,
+                                    x_label_count=custom_x_labels,
+                                    legend_position=legend_pos_options[selected_legend_pos],
+                                    symbol_style=selected_symbol_style,
+                                    legend_size=selected_legend_size,
+                                    legend_cols=selected_legend_cols if 'selected_legend_cols' in locals() else 5,
+                                    symbol_size=selected_symbol_size,
+                                    legend_spacing=selected_legend_spacing,
+                                    log_scale=use_log_scale,
+                                    custom_line_styles=custom_line_styles if 'custom_line_styles' in locals() else None
+                                )
+                                st.session_state["modulo_procesado"] = module_type
+                                st.success("¡Reportes listos para descargar!")
+
+                        # Si el ZIP ya fue generado y pertenece al módulo actual, mostramos el botón de descarga real
+                        if st.session_state["zip_descargable"] is not None and st.session_state["modulo_procesado"] == module_type:
+                            st.download_button(
+                                label=f"💾 Descargar ZIP ({formato_img})",
+                                data=st.session_state["zip_descargable"],
+                                file_name=f"reporte_{success_msg_prefix.lower().replace(' ', '_')}.zip",
+                                mime="application/zip",
+                                use_container_width=True
+                            )
+                            
+                            # Opción para limpiar el buffer si el usuario quiere volver a procesar tras hacer cambios
+                            if st.button("🧹 Limpiar descarga", use_container_width=True):
+                                st.session_state["zip_descargable"] = None
+                                st.session_state["modulo_procesado"] = None
+                                st.rerun()
+                               
                     # --- GENERAR TEXTO ---
                     if selected_param:
                         st.markdown("### Interpretación")
